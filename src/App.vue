@@ -2,10 +2,14 @@
     <div id="app">
         <button @click="test">Test</button>
         <button @click="testVK">testVK</button>
+
+        <UserProfile></UserProfile>
     </div>
 </template>
 
 <script>
+
+import UserProfile from './components/UserProfile.vue'
 
 import dsApi from './DSApi'
 import VKC from './VK/VKC'
