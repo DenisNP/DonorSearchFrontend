@@ -36,7 +36,6 @@ function handlerSite(params, callback, access_token) {
 }
 
 function getResult(result, callback, request_id) {
-  debugger;
   if(result.response) {
     returnResult(callback, {
       request_id: request_id || '',

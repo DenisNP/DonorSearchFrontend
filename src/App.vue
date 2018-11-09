@@ -1,32 +1,50 @@
 <template>
-    <div id="app">
-        <button @click="test">Test</button>
-        <button @click="testVK">testVK</button>
-
-        <Root :activeView="activeView">
-            <UserProfile id="feed" key="feed" title="Feed"></UserProfile>
-            <UserProfile id="profile" key="profile" title="Profile"></UserProfile>
-        </Root>
-    </div>
+  <div id="app">
+    <Epic :activeStory="activeStory">
+      <Tabbar slot="tabbar">
+        <TabbarItem :selected='activeStory == "profile"' @click='activeStory="profile"'>
+          <vkui-icon name="user" size="28" />
+        </TabbarItem>
+        <TabbarItem :selected='activeStory == "map"' @click='activeStory="map"'>
+          <vkui-icon name="place" size="28" />
+        </TabbarItem>
+        <TabbarItem :selected='activeStory == "timeline"' @click='activeStory="timeline"'>
+          <vkui-icon name="recent_outline" size="28" />
+        </TabbarItem>
+      </Tabbar>
+      <UserProfile id="profile" key="profile"/>
+      <MapView id="map" key="map"/>
+      <Timeline id="timeline" key="timeline"/>
+    </Epic>
+  </div>
 </template>
 
 <script>
 
-import { Root, Epic, VKView, Panel, PanelHeader } from '@denull/vkui/src/components'
-import UserProfile from './components/UserProfile.vue'
+import { Epic, Tabbar, TabbarItem } from '@denull/vkui/src/components'
+import UserProfile from './components/UserProfile'
+import MapView from './components/MapView'
+import Timeline from './components/Timeline'
 
-import dsApi from './DSApi'
+import DSApi from './DSApi'
 import VKC from './VK/VKC'
+import EventBus from './EventBus'
 import { VK_ACCESS_TOKEN } from './tokens.js'
 
 export default {
     name: 'app',
     components: {
-        Root, Epic, VKView, Panel, PanelHeader,
-        UserProfile
+        Epic, Tabbar, TabbarItem,
+        UserProfile,
+        MapView,
+        Timeline
     },
     mounted() {
-      VKC.init(VK_ACCESS_TOKEN + "123", (e) => {});
+      VKC.init(VK_ACCESS_TOKEN, () => {
+        VKC.subscribe((e) => {
+          EventBus.$emit(e.type, e.data);
+        });
+      });
     },
     data() {
         return {
@@ -34,20 +52,7 @@ export default {
         }
     },
     methods: {
-        test() {
-            dsApi.send('', {
 
-            }, (data) => {
-                console && console.log(data)
-            }, 'GET');
-        },
-        testVK() {
-          VKC.quickApi('users.get', {
-            fields: 'photo_100, sex, city, country'
-          }, (data) => {
-            console && console.log(data);
-          });
-        }
     }
 }
 
@@ -55,7 +60,5 @@ export default {
 
 <style>
 
-#app {
-}
 
 </style>
