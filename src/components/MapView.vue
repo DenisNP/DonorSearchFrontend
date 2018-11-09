@@ -115,10 +115,6 @@ export default {
       map.on('mouseleave', 'blood_banks', function () {
         map.getCanvas().style.cursor = '';
       });
-
-      var mapCanvas = document.getElementsByClassName('mapboxgl-canvas')[0];
-      var wasSizes = mapCanvas.style.width + '; ' + mapCanvas.style.height;
-      this.mapResize(map, wasSizes);
     },
 
     updateFeatures() {
