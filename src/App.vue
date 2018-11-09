@@ -1,14 +1,15 @@
 <template>
     <div id="app">
         <button @click="test">Test</button>
+        <button @click="testVK">testVK</button>
     </div>
 </template>
 
 <script>
 
 import HelloWorld from './components/HelloWorld.vue'
-<<<<<<< Updated upstream
 import dsApi from './DSApi'
+import VKC from './VKC'
 
 export default {
     name: 'app',
@@ -22,20 +23,15 @@ export default {
             }, (data) => {
                 console && console.log(data)
             }, 'GET');
+        },
+        testVK() {
+          VKC.quickApi('users.get', {
+            fields: 'photo_100, sex, city, country'
+          }, (data) => {
+            console && console.log(data);
+          });
         }
     }
-=======
-import VKC from './VK/VKC'
-
-export default {
-  name: 'app',
-  components: {
-    HelloWorld
-  },
-  mounted() {
-
-  }
->>>>>>> Stashed changes
 }
 
 </script>
