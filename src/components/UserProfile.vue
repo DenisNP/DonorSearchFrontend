@@ -45,7 +45,7 @@
                     />
                 </PanelHeader>
 
-                
+
 
                 <List v-if="CitySelection.list.length">
                     <Cell v-for="(item, index) in CitySelection.list"
@@ -70,7 +70,7 @@ import _ from 'lodash'
 
 import dsApi from '../DSApi'
 import VKC from '../VK/VKC'
-import { VK_ACCESS_TOKEN } from '../tokens.js'
+import { VK_ACCESS_TOKEN, VK_APP_ID } from '../tokens.js'
 
 export default {
     name: 'UserProfile',
@@ -85,7 +85,7 @@ export default {
         }
     },
     mounted() {
-        
+
     },
     data() {
         return {

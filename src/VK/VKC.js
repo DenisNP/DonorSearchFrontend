@@ -89,7 +89,7 @@ export default {
   auth: (app_id, scope, onSuccess, onError) => {
     auth_callbacks = {
       success: onSuccess,
-      erroe: onError
+      error: onError
     };
 
     send('VKWebAppGetAuthToken', {
