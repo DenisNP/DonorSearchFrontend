@@ -7,14 +7,17 @@
 
 <script>
 
-import HelloWorld from './components/HelloWorld.vue'
 import dsApi from './DSApi'
-import VKC from './VKC'
+import VKC from './VK/VKC'
+import { VK_ACCESS_TOKEN } from './tokens.js'
 
 export default {
     name: 'app',
     components: {
-        HelloWorld
+
+    },
+    mounted() {
+      VKC.init(VK_ACCESS_TOKEN + "123", (e) => {});
     },
     methods: {
         test() {

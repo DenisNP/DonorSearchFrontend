@@ -33,13 +33,13 @@ function handler(params, callback, access_token) {
 
 function getErrorData(error_code) {
   switch(error_code) {
-        case error.PERMISSION_DENIED:
+        case error_code.PERMISSION_DENIED:
             return "User denied the request for Geolocation."
-        case error.POSITION_UNAVAILABLE:
+        case error_code.POSITION_UNAVAILABLE:
             return "Location information is unavailable."
-        case error.TIMEOUT:
+        case error_code.TIMEOUT:
             return "The request to get user location timed out."
-        case error.UNKNOWN_ERROR:
+        case error_code.UNKNOWN_ERROR:
             return "An unknown error occurred."
     }
 

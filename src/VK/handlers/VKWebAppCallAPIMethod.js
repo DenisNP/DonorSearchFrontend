@@ -24,7 +24,7 @@ function handlerIFrame(params, callback) {
 function handlerSite(params, callback, access_token) {
   if(!params || !params.method) return;
   if(!params.hasOwnProperty('params')) params.params = {};
-  let payload = addRequired(params.params);
+  let payload = addRequired(params.params, access_token);
 
   jsonpRequest(
     'https://api.vk.com/method/' + params.method,
@@ -36,6 +36,7 @@ function handlerSite(params, callback, access_token) {
 }
 
 function getResult(result, callback, request_id) {
+  debugger;
   if(result.response) {
     returnResult(callback, {
       request_id: request_id || '',

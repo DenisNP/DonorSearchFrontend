@@ -26,7 +26,7 @@ export default {
     let callback;
     if(typeof(arg2) === FUNCTION) {
       callback = arg2;
-      access_token = arg1 || "";
+      access_token = arg1 || '';
     } else {
       callback = arg1;
     }
@@ -92,7 +92,7 @@ export default {
   }
 }
 
-function send(handler, params) => {
+function send(handler, params) {
   console &&
   console.log(client_type + " send: " + handler) &&
   console.log(params);
