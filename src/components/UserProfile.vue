@@ -4,6 +4,27 @@
             <Panel id="Profile">
                 <PanelHeader>Профиль</PanelHeader>
 
+                <Group v-if="VKProfile.id">
+                    <Cell size="l"
+                        :description="VKProfile.city.title"
+                    >
+                        <Button level="secondary" slot="bottomContent">Редактировать</Button>
+                        {{VKProfileFullName}}
+                        <Avatar :src="VKProfile.photo_100" :size="80" slot="before" />
+                    </Cell>
+                </Group>
+
+                <Group>
+                    <Div><center><Button @click="DSProfileGet">
+                        Получить профиль DS
+                    </Button></center></Div>
+                    <Div><center><Button @click="VKProfileGet">
+                        Получить профиль VK
+                    </Button></center></Div>
+
+                    <Div><pre>{{DSProfile}}</pre></Div>
+                </Group>
+
                 <Group>
                     <template v-if="VKProfile.id">
                         <Header level="2">
@@ -25,7 +46,7 @@
                     <List>
                         <Cell expandable @click="CitySelectionOpen" indicator="Выбрать">
                             <vkui-icon :size="24" name="place" slot="before" />
-                            {{selectedCityName}}
+                            
                         </Cell>
                     </List>
                 </Group>
@@ -84,8 +105,10 @@ export default {
             return 'Город не выбран';
         }
     },
-    mounted() {
-
+    computed: {
+        VKProfileFullName() {
+            return this.VKProfile.first_name + ' ' + this.VKProfile.last_name;
+        }
     },
     data() {
         return {
@@ -113,19 +136,31 @@ export default {
             }
         }
     },
-    created() {
-
+    mounted() {
+        this.VKAuth()
     },
     methods: {
         VKAuth() {
             VKC.init(VK_ACCESS_TOKEN, () => {
                 VKC.auth(VK_APP_ID, 'email,friends', () => {
-                    VKC.quickApi('users.get', {}, (data) => {
-                        if (data.data.response && data.data.response.length) {
-                            this.VKProfile = data.data.response[0]
-                        }
-                    });
+                    this.VKProfileGet();
                 });
+            });
+        },
+        VKProfileGet() {
+            VKC.quickApi('users.get', {
+                fields: 'sex,bdate,photo_100,city,country'
+            }, (data) => {
+                if (data.data.response && data.data.response.length) {
+                    this.VKProfile = data.data.response[0]
+                }
+            });
+        },
+        DSProfileGet() {
+            this.VKProfile.id = 5000
+
+            dsApi.send('users/' + this.VKProfile.id, {}, (data) => {
+                debugger;
             });
         },
 
@@ -143,12 +178,6 @@ export default {
 
                 this.CitySelection.search = e
                 this.CitySelection.list.push(this.cities[Math.floor(Math.random()*this.cities.length)]);
-
-                return
-
-                dsApi.send('users/' + this.VKProfile.id, {}, (data) => {
-                    debugger;
-                });
             }, 200
         ),
 
@@ -167,6 +196,10 @@ export default {
 
 .UserProfile {
     text-align: left;
+}
+
+pre {
+    white-space: pre-wrap;
 }
 
 </style>

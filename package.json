@@ -14,7 +14,8 @@
     "jsonp": "^0.2.1",
     "mapbox-gl": "^0.51.0",
     "mapbox-gl-vue": "^1.9.0",
-    "vue": "^2.5.17"
+    "vue": "^2.5.17",
+    "vue-router": "^3.0.1"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.0.5",
