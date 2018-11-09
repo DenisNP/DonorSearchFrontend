@@ -3,12 +3,16 @@
         <button @click="test">Test</button>
         <button @click="testVK">testVK</button>
 
-        <UserProfile></UserProfile>
+        <Root :activeView="activeView">
+            <UserProfile id="feed" key="feed" title="Feed"></UserProfile>
+            <UserProfile id="profile" key="profile" title="Profile"></UserProfile>
+        </Root>
     </div>
 </template>
 
 <script>
 
+import { Root, Epic, VKView, Panel, PanelHeader } from '@denull/vkui/src/components'
 import UserProfile from './components/UserProfile.vue'
 
 import dsApi from './DSApi'
@@ -18,10 +22,16 @@ import { VK_ACCESS_TOKEN } from './tokens.js'
 export default {
     name: 'app',
     components: {
+        Root, Epic, VKView, Panel, PanelHeader,
         UserProfile
     },
     mounted() {
       VKC.init(VK_ACCESS_TOKEN + "123", (e) => {});
+    },
+    data() {
+        return {
+            activeView: 'profile'
+        }
     },
     methods: {
         test() {
@@ -46,12 +56,6 @@ export default {
 <style>
 
 #app {
-    font-family: 'Avenir', Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-align: center;
-    color: #2c3e50;
-    margin-top: 60px;
 }
 
 </style>
