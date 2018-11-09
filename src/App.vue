@@ -12,9 +12,9 @@
           <vkui-icon name="recent_outline" size="28" />
         </TabbarItem>
       </Tabbar>
-      <UserProfile id="profile" key="profile"/>
-      <MapView id="map" key="map"/>
-      <Timeline id="timeline" key="timeline"/>
+      <UserProfile id="profile" key="profile" v-show="activeStory == 'profile'"/>
+      <MapView id="map" key="map" v-show="activeStory == 'map'"/>
+      <Timeline id="timeline" key="timeline" v-show="activeStory == 'timeline'"/>
     </Epic>
   </div>
 </template>
@@ -45,6 +45,14 @@ export default {
           EventBus.$emit(e.type, e.data);
         });
       });
+    },
+    watch: {
+      activeStory(val) {
+        if(val == "map") {
+          //open map
+          EventBus.$emit('map-mapInitialized');
+        }
+      }
     },
     data() {
         return {

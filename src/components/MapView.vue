@@ -2,7 +2,8 @@
   <VKView activePanel="defMap" v-bind="$attrs">
     <Panel id="defMap" theme="white">
       <PanelHeader id="mapHeader">Карта</PanelHeader>
-      <Mapbox :style="mapHeight"
+      <Mapbox v-if="mapInitialized"
+        :style="mapHeight"
         :access-token=token
         :map-options="{
         style: 'mapbox://styles/mapbox/light-v9',
@@ -25,6 +26,7 @@ import { VKView, Panel, PanelHeader } from '@denull/vkui/src/components'
 let MapboxLanguage = require('@mapbox/mapbox-gl-language');
 import Mapbox from 'mapbox-gl-vue'
 import { MAPBOX_TOKEN } from '../tokens.js'
+import EventBus from '../EventBus'
 
 export default {
   name: 'MapView',
@@ -38,7 +40,8 @@ export default {
       center: [30.315, 59.939],
       zoom: 12,
       mapHeight: "",
-      markers: []
+      markers: [],
+      mapInitialized: false
     }
   },
   computed: {
@@ -70,6 +73,11 @@ export default {
     let tabbar = document.getElementsByClassName('Tabbar')[0].offsetHeight;
     let height = vue_header - (-tabbar);
     this.mapHeight = 'height: calc(100vh - ' + height + 'px);';
+
+    let self = this;
+    EventBus.$on('map-mapInitialized', () => {
+      self.mapInitialized = true;
+    });
   },
   methods: {
     init(map) {
@@ -107,6 +115,10 @@ export default {
       map.on('mouseleave', 'blood_banks', function () {
         map.getCanvas().style.cursor = '';
       });
+
+      var mapCanvas = document.getElementsByClassName('mapboxgl-canvas')[0];
+      var wasSizes = mapCanvas.style.width + '; ' + mapCanvas.style.height;
+      this.mapResize(map, wasSizes);
     },
 
     updateFeatures() {
@@ -151,9 +163,5 @@ export default {
 	height: 100vh;
 }
 
-.MapTopContainer {
-  display: flex;
-
-}
 
 </style>
