@@ -6,13 +6,13 @@
 
                 <Group title="Кто ты?">
                     <Div>
-                        <pre>{{profile}}</pre>
+                        
                     </Div>
                 </Group>
 
                 <Group title="Где сдавать?">
                     <List>
-                        <Cell expandable :onClick="citySelectionOpen">
+                        <Cell expandable @click="CitySelectionOpen" indicator="Выбрать">
                             <vkui-icon :size="24" name="place" slot="before" />
                             {{selectedCityName}}
                         </Cell>
@@ -21,26 +21,31 @@
 
                 <Group title="Отладка">
                     <Div>
-                        <Button @click="profile.city.name = 'Test'">Сменить город</Button>
+                        <pre>DSProfile: {{DSProfile}}</pre>
+                        <pre>VKProfile: {{VKProfile}}</pre>
                     </Div>
                 </Group>
             </Panel>
             <Panel id="CitySelection">
-                <PanelHeader noShadow>
-                    <HeaderButton key="add" slot="right">
-                        <vkui-icon :size="24" name="add" />
-                    </HeaderButton>
-
-                    Выбор города
+                <PanelHeader no-shadow>
+                    <Search theme="header"
+                        :value="CitySelection.search"
+                        @input="CitySelectionChange"
+                    />
                 </PanelHeader>
 
-                <Search :value="CitySelection.search" :onChange="CitySelectionChange" />
+                
 
-                <List>
-                    <Cell v-for="item in CitySelection.list" :key="item.id">
+                <List v-if="CitySelection.list.length">
+                    <Cell v-for="(item, index) in CitySelection.list"
+                        :key="index"
+                        @click="CitySelectionChoose(item)"
+                    >
                         {{item.name}}
                     </Cell>
                 </List>
+
+                <Footer v-else>Нет доступных городов</Footer>
             </Panel>
         </VKView>
     </div>
@@ -49,7 +54,12 @@
 <script>
 
 import '@denull/vkui'
+
+import _ from 'lodash'
+
 import dsApi from '../DSApi'
+import VKC from '../VK/VKC'
+import { VK_ACCESS_TOKEN } from '../tokens.js'
 
 export default {
     name: 'UserProfile',
@@ -64,16 +74,19 @@ export default {
         }
     },
     mounted() {
-        dsApi.send('users/1910986', {}, (data) => {
-            this.profile = data
-        })
+        VKC.init(VK_ACCESS_TOKEN, () => {
+            VKC.quickApi('users.get', {}, (data) => {
+                if (data.data.response && data.data.response.length) {
+                    this.VKProfile = data.data.response[0]
+                }
+            });
+        });
     },
     data() {
         return {
             activePanel: 'Profile',
-            profile: {
-                city: {}
-            },
+            DSProfile: {},
+            VKProfile: {},
             cities: [
                 {
                     id: 1,
@@ -93,15 +106,32 @@ export default {
             }
         }
     },
+    created() {
+
+    },
     methods: {
-        citySelectionOpen() {
+        CitySelectionOpen() {
             this.activePanel = 'CitySelection'
         },
 
-        CitySelectionChange(e) {
-            this.CitySelection.list.push(this.cities[1]);
-            this.CitySelection.list.push(this.cities[2]);
-            this.CitySelection.list.push(this.cities[3]);
+        CitySelectionChange: _.debounce(
+            function(e) {
+                if (!e.length) {
+                    this.CitySelection.list = [];
+                    this.CitySelection.search = '';
+                    return;
+                }
+
+                this.CitySelection.search = e
+                this.CitySelection.list.push(this.cities[Math.floor(Math.random()*this.cities.length)]);
+            }, 200
+        ),
+
+        CitySelectionChoose(city) {
+            this.DSProfile.city = city;
+            this.CitySelection.search = '';
+            this.CitySelection.list = [];
+            this.activePanel = 'Profile';
         }
     }
 }
