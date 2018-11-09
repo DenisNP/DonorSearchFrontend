@@ -16,22 +16,29 @@
         @map-load="loaded"
         @map-click="mapClick"
       ></Mapbox>
+      <BottomPopup :opened="popup.opened">
+        Test test
+      </BottomPopup>
     </Panel>
   </VKView>
 </template>
 
 <script>
 
+import { MAPBOX_TOKEN } from '../tokens.js'
+
 import { VKView, Panel, PanelHeader } from '@denull/vkui/src/components'
 let MapboxLanguage = require('@mapbox/mapbox-gl-language');
 import Mapbox from 'mapbox-gl-vue'
-import { MAPBOX_TOKEN } from '../tokens.js'
-import EventBus from '../EventBus'
+import BottomPopup from './BottomPopup'
 
 export default {
   name: 'MapView',
   props: {
-
+    mapInitialized: {
+      type: Boolean,
+      default: false
+    }
   },
   data() {
     return {
@@ -41,7 +48,10 @@ export default {
       zoom: 12,
       mapHeight: "",
       markers: [],
-      mapInitialized: false
+      mapInitialized: false,
+      popup: {
+        opened: false
+      }
     }
   },
   computed: {
@@ -73,11 +83,6 @@ export default {
     let tabbar = document.getElementsByClassName('Tabbar')[0].offsetHeight;
     let height = vue_header - (-tabbar);
     this.mapHeight = 'height: calc(100vh - ' + height + 'px);';
-
-    let self = this;
-    EventBus.$on('map-mapInitialized', () => {
-      self.mapInitialized = true;
-    });
   },
   methods: {
     init(map) {
@@ -122,6 +127,9 @@ export default {
     },
 
     mapClick(map, e) {
+
+      this.popup.opened = true;
+
       const clickedFeatures = map.queryRenderedFeatures(e.point, {
         layers: ['blood_banks']
       });
@@ -131,7 +139,6 @@ export default {
 
       const feature = clickedFeatures[0];
       console && console.log(feature.properties);
-      //this.$emit('itemSelected', feature.properties);
     }
   },
   watch: {
@@ -146,7 +153,8 @@ export default {
     VKView,
     Panel,
     PanelHeader,
-    Mapbox
+    Mapbox,
+    BottomPopup
   }
 }
 

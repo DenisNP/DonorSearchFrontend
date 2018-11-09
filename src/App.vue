@@ -13,7 +13,7 @@
         </TabbarItem>
       </Tabbar>
       <UserProfile id="profile" key="profile" v-show="activeStory == 'profile'"/>
-      <MapView id="map" key="map" v-show="activeStory == 'map'"/>
+      <MapView id="map" key="map" v-show="activeStory == 'map'" :mapInitialized="mapInitialized"/>
       <Timeline id="timeline" key="timeline" v-show="activeStory == 'timeline'"/>
     </Epic>
   </div>
@@ -50,13 +50,16 @@ export default {
       activeStory(val) {
         if(val == "map") {
           //open map
-          EventBus.$emit('map-mapInitialized');
+          if(!this.mapInitialized){
+            this.mapInitialized = true;
+          }
         }
       }
     },
     data() {
         return {
-            activeStory: 'profile'
+            activeStory: 'profile',
+            mapInitialized: false
         }
     },
     methods: {
