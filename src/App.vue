@@ -18,7 +18,7 @@ import { VK_ACCESS_TOKEN } from './tokens.js'
 export default {
     name: 'app',
     components: {
-
+        UserProfile
     },
     mounted() {
       VKC.init(VK_ACCESS_TOKEN + "123", (e) => {});
