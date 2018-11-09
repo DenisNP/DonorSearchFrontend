@@ -8,6 +8,12 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@denull/vkui": "^0.2.7",
+    "@mapbox/mapbox-gl-language": "^0.10.0",
+    "@vkontakte/vkui-connect": "^1.1.2",
+    "jsonp": "^0.2.1",
+    "mapbox-gl": "^0.51.0",
+    "mapbox-gl-vue": "^1.9.0",
     "vue": "^2.5.17"
   },
   "devDependencies": {
