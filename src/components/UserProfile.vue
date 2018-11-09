@@ -4,10 +4,21 @@
             <Panel id="Profile">
                 <PanelHeader>Профиль</PanelHeader>
 
-                <Group title="Кто ты?">
-                    <Div>
-                        
-                    </Div>
+                <Group>
+                    <template v-if="VKProfile.id">
+                        <Header level="2">
+                            Кто ты?
+                        </Header>
+                        <List>
+                            <Cell><InfoRow title="VK ID">   {{VKProfile.id}}</InfoRow></Cell>
+                            <Cell><InfoRow title="Имя">     {{VKProfile.first_name}}</InfoRow></Cell>
+                            <Cell><InfoRow title="Фамилия"> {{VKProfile.last_name}}</InfoRow></Cell>
+                        </List>
+                    </template>
+
+                    <Div v-else><center>
+                        <Button @click="VKAuth">Войти через ВКонтакте</Button>
+                    </center></Div>
                 </Group>
 
                 <Group title="Где сдавать?">
@@ -74,18 +85,14 @@ export default {
         }
     },
     mounted() {
-        VKC.init(VK_ACCESS_TOKEN, () => {
-            VKC.quickApi('users.get', {}, (data) => {
-                if (data.data.response && data.data.response.length) {
-                    this.VKProfile = data.data.response[0]
-                }
-            });
-        });
+        
     },
     data() {
         return {
             activePanel: 'Profile',
-            DSProfile: {},
+            DSProfile: {
+                isEdit: false
+            },
             VKProfile: {},
             cities: [
                 {
@@ -110,6 +117,18 @@ export default {
 
     },
     methods: {
+        VKAuth() {
+            VKC.init(VK_ACCESS_TOKEN, () => {
+                VKC.auth(VK_APP_ID, 'email,friends', () => {
+                    VKC.quickApi('users.get', {}, (data) => {
+                        if (data.data.response && data.data.response.length) {
+                            this.VKProfile = data.data.response[0]
+                        }
+                    });
+                });
+            });
+        },
+
         CitySelectionOpen() {
             this.activePanel = 'CitySelection'
         },
@@ -124,6 +143,12 @@ export default {
 
                 this.CitySelection.search = e
                 this.CitySelection.list.push(this.cities[Math.floor(Math.random()*this.cities.length)]);
+
+                return
+
+                dsApi.send('users/' + this.VKProfile.id, {}, (data) => {
+                    debugger;
+                });
             }, 200
         ),
 
