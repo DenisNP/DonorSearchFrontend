@@ -94,8 +94,7 @@ export default {
 
 function send(handler, params) {
   console &&
-  console.log(client_type + " send: " + handler) &&
-  console.log(params);
+  console.log(client_type + " send: " + handler, params);
 
   if(!params) params = {};
 
@@ -146,9 +145,9 @@ function returnData(data) {
   if(!data.data) return;
 
   if(data.data.error_type) {
-    console && console.log(client_type + " error: ") && console.log(data);
+    console && console.log(client_type + " error: ", data);
   }else{
-    console && console.log(client_type + " event: ") && console.log(data);
+    console && console.log(client_type + " event: ", data);
   }
 
   if(data.type == 'VKWebAppCallAPIMethodResult') {
