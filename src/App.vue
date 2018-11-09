@@ -7,6 +7,7 @@
 <script>
 
 import HelloWorld from './components/HelloWorld.vue'
+<<<<<<< Updated upstream
 import dsApi from './DSApi'
 
 export default {
@@ -23,6 +24,18 @@ export default {
             }, 'GET');
         }
     }
+=======
+import VKC from './VK/VKC'
+
+export default {
+  name: 'app',
+  components: {
+    HelloWorld
+  },
+  mounted() {
+
+  }
+>>>>>>> Stashed changes
 }
 
 </script>

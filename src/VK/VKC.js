@@ -63,22 +63,7 @@ export default {
     }
   },
 
-  send: (handler, params) => {
-    console &&
-    console.log(client_type + " send: " + handler) &&
-    console.log(params);
-
-    if (client_type == CLIENT_VK_APPS) {
-      if(handler == 'VKWebAppCallAPIMethod' && access_token)
-        params['params']['access_token'] = access_token;
-
-      connect.send(handler, params);
-    } else if (client_type == CLIENT_VK_IFRAME) {
-      sendIFrame(handler, params);
-    } else if (client_type == CLIENT_SITE) {
-      sendSite(handler, params);
-    }
-  },
+  send: send,
 
   subscribe: (fn) => {
     subscribers.push(fn);
@@ -92,11 +77,44 @@ export default {
     }
   },
 
-  quickApi: (method, params, callback) => {
+  quickApi: (method, params, onSuccess, onError) => {
+    let req_id = makeId();
+    send('VKWebAppCallAPIMethod', {
+      method: method,
+      params: params,
+      request_id: req_id
+    });
 
+    api_requests[req_id] = {
+      success: onSuccess,
+      error: onError
+    };
   }
 }
 
+function send(handler, params) => {
+  console &&
+  console.log(client_type + " send: " + handler) &&
+  console.log(params);
+
+  if(!params) params = {};
+
+  if (client_type == CLIENT_VK_APPS) {
+    if(!params['params']) params['params'] = {};
+    if(
+        handler == 'VKWebAppCallAPIMethod'
+        && access_token
+        && !params['params']['access_token']
+      )
+      params['params']['access_token'] = access_token;
+
+    connect.send(handler, params);
+  } else if (client_type == CLIENT_VK_IFRAME) {
+    sendIFrame(handler, params);
+  } else if (client_type == CLIENT_SITE) {
+    sendSite(handler, params);
+  }
+}
 
 function sendIFrame(handler, params) {
   if(!handlers[handler]) {
@@ -125,10 +143,26 @@ function sendSite(handler, params) {
 }
 
 function returnData(data) {
+  if(!data.data) return;
+
   if(data.data.error_type) {
     console && console.log(client_type + " error: ") && console.log(data);
   }else{
     console && console.log(client_type + " event: ") && console.log(data);
+  }
+
+  if(data.type == 'VKWebAppCallAPIMethodResult') {
+    let req_id = data.data.request_id;
+    if(req_id && api_requests[req_id]) {
+      let callbacks = api_requests[req_id];
+      if(data.data.error_type) {
+        callbacks.error && callbacks.error(data);
+      }else{
+        callbacks.success && callbacks.success(data);
+      }
+
+      delete api_requests[req_id];
+    }
   }
 
   subscribers.forEach((fn) => {
