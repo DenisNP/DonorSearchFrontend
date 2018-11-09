@@ -20,6 +20,7 @@ let client_type = CLIENT_SITE;
 let access_token = "";
 
 let api_requests = {};
+let auth_callbacks = {};
 
 export default {
   init: (arg1, arg2) => {
@@ -34,12 +35,6 @@ export default {
     if(!isDesktop) {
 
       connect.subscribe((e) => {
-        if(
-          e.detail.type == 'VKWebAppAccessTokenReceived' &&
-          e.detail.data.access_token
-        ) {
-          access_token = e.detail.data.access_token;
-        }
         returnData(e.detail);
       });
 
@@ -89,6 +84,18 @@ export default {
       success: onSuccess,
       error: onError
     };
+  },
+
+  auth: (app_id, scope, onSuccess, onError) => {
+    auth_callbacks = {
+      success: onSuccess,
+      erroe: onError
+    };
+
+    send('VKWebAppGetAuthToken', {
+      'app_id': app_id,
+      'scope': scope
+    });
   }
 }
 
@@ -150,7 +157,7 @@ function returnData(data) {
     console && console.log(client_type + " event: ", data);
   }
 
-  if(data.type == 'VKWebAppCallAPIMethodResult') {
+  if(data.type == 'VKWebAppCallAPIMethodResult' || data.type == 'VKWebAppCallAPIMethodFailed') {
     let req_id = data.data.request_id;
     if(req_id && api_requests[req_id]) {
       let callbacks = api_requests[req_id];
@@ -161,6 +168,15 @@ function returnData(data) {
       }
 
       delete api_requests[req_id];
+    }
+  }
+
+  if(data.type == 'VKWebAppAccessTokenReceived' || data.type == 'VKWebAppAccessTokenFailed') {
+    if(data.data.access_token) {
+      access_token = data.data.access_token;
+      auth_callbacks.success && auth_callbacks.success(data);
+    }else{
+      auth_callbacks.error && auth_callbacks.error(data);
     }
   }
 
