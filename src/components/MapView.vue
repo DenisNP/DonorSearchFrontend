@@ -48,7 +48,6 @@ export default {
       zoom: 12,
       mapHeight: "",
       markers: [],
-      mapInitialized: false,
       popup: {
         opened: false
       }
