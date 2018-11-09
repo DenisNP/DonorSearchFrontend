@@ -48,7 +48,7 @@ export default {
     },
     data() {
         return {
-            activeView: 'profile'
+            activeStory: 'profile'
         }
     },
     methods: {
