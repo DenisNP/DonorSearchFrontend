@@ -1,36 +1,34 @@
 <template>
     <VKView v-bind="$attrs" :activePanel="activePanel" class="UserProfile">
         <Panel id="Profile">
-            <PanelHeader>Профиль DonorSearch</PanelHeader>
+            <PanelHeader>
+                Профиль DonorSearch
+            </PanelHeader>
 
-            <Group v-if="DSProfile._ready">
-                <Cell size="l"
+            <Group>
+                <template v-if="!DSProfile._ready">
+                    <Spinner class="ProfileLoadingSpinner" />
+                </template>
+                <Cell class="UserProfileBlock" size="l" :class="{shown: DSProfile._ready}"
                     :description="UserProfileCityTitle"
                 >
                     <Button level="secondary" slot="bottomContent" @click="ProfileEditOpen">
                         Редактировать
                     </Button>
                     {{UserProfileFullName}}
-                    <Avatar :src="VKProfile.photo_100" :size="80" slot="before" />
+                    <Avatar v-if="DSProfile.avatar" :src="DSProfile.avatar" :size="80" slot="before" />
                 </Cell>
             </Group>
 
             <Group title="Где сдавать?">
                 <List>
-                    <Cell expandable @click="CitySelectionOpen" indicator="Выбрать">
-                        <vkui-icon :size="24" name="place" slot="before" />
-                        {{UserProfileCityTitle || 'Не выбран'}}
-                    </Cell>
-                </List>
-            </Group>
-
-            
-
-            <Group title="Когда сдавать?">
-                <List>
-                    <Cell expandable @click="CitySelectionOpen" indicator="Выбрать">
-                        <vkui-icon :size="24" name="place" slot="before" />
-                        {{UserProfileCityTitle || 'Не выбран'}}
+                    <Cell expandable
+                        @click="CitySelectionOpen"
+                        :indicator="osname !== 'ios' ? 'Выбрать' : ''"
+                        :description="DSProfile.cityRegion"
+                    >
+                        <!-- <vkui-icon :size="24" name="place" slot="before" /> -->
+                        {{DSProfile.cityTitle || 'Не выбран'}}
                     </Cell>
                 </List>
             </Group>
@@ -59,10 +57,14 @@
                         Отмена
                     </template>
                     <vkui-icon :size="24" name="cancel" v-else />
-
                 </HeaderButton>
+
                 Личные данные
             </PanelHeader>
+
+            <div class="savedNotification" :class="{shown: DSProfile._saved}">
+                <span>изменения сохранены</span>
+            </div>
 
             <Group>
                 <FormLayout>
@@ -70,19 +72,55 @@
                     <Input v-model="DSProfile.last_name" top="Фамилия" />
                     <Input v-model="DSProfile.bdate" top="Дата рождения" type="date" />
 
-                    <Button @click="ProfileEditSave">Сохранить</Button>
+                    <!-- <Input v-model="UserProfileCityTitle" top="Город сдачи" placeholder="Не выбран"
+                        @focus="CitySelectionOpen('ProfileEdit')"
+                    /> -->
+
+                    <List>
+                        <Cell expandable
+                            @click="CitySelectionOpen"
+                            :description="DSProfile.cityRegion"
+                            :indicator="osname !== 'ios' ? 'Выбрать' : ''"
+                        >
+                            <vkui-icon :size="24" name="place" slot="before" />
+                            {{DSProfile.cityTitle || 'Не выбран'}}
+                        </Cell>
+                    </List>
+
+                    <div class="saveBtnContainer">
+                        <Button @click="DSProfileSave">Сохранить</Button>
+                        <span class="savedNotification" :class="{shown: DSProfile._saved}">
+                            изменения сохранены
+                        </span>
+                    </div>
                 </FormLayout>
             </Group>
         </Panel>
 
         <Panel id="CitySelection">
-            <PanelHeader no-shadow>
-                <Search theme="header"
+            <template v-if="osname == 'android'">
+                <PanelHeader>
+                    <Search theme="header"
+                        :value="CitySelection.search"
+                        @close="CitySelectionClose"
+                        @input="CitySelectionChange"
+                    />
+                </PanelHeader>
+            </template>
+
+            <template v-else>
+                <PanelHeader no-shadow>
+                    <HeaderButton @click="CitySelectionClose" v-if="osname == 'ios'" slot="left">
+                        <vkui-icon :size="24" name="browser_back" />
+                    </HeaderButton>
+                    Город сдачи
+                </PanelHeader>
+                <Search theme="default"
                     :value="CitySelection.search"
                     @close="CitySelectionClose"
                     @input="CitySelectionChange"
                 />
-            </PanelHeader>
+            </template>
 
             <List v-if="CitySelection.list.length">
                 <Cell v-for="(item, index) in CitySelection.list"
@@ -101,7 +139,8 @@
 
 <script>
 
-import '@denull/vkui'
+// import '@denull/vkui'
+import { Input } from '@denull/vkui/src/components'
 import { platform, IOS, ANDROID } from '@denull/vkui'
 
 import _ from 'lodash'
@@ -260,7 +299,9 @@ export default {
                             'bdate':        this.VKProfile.bdate,
                             'avatar':       this.VKProfile.photo_100,
                             'cityId':       this.VKProfile.city.id,
-                            'vkId':         this.VKProfile.id
+                            'vkId':         this.VKProfile.id,
+                            'cityTitle':    this.VKProfile.city.title,
+                            'cityRegion':   this.VKProfile.country.title
                         });
                     }
                 });
@@ -292,8 +333,18 @@ export default {
                 this.DSProfile = Object.assign({}, this.DSProfile);
             },
             DSProfileSave() {
+                let self = this;
+
+                self.DSProfile = { _saved: true };
+
+                setTimeout(function() {
+                    self.DSProfile = { _saved: false };
+                }, 1500);
+
+                return;
+
                 if (!this.VKProfile.id) {
-                    console.warn('invalid VKProfile.id');
+                    console && console.warn('invalid VKProfile.id');
                     return;
                 }
 
@@ -307,6 +358,7 @@ export default {
         // Редактирование данных профиля
             ProfileEditOpen() {
 
+                this.DSProfile._saved = false;
                 this.activePanel = 'ProfileEdit';
             },
             ProfileEditClose() {
@@ -320,16 +372,22 @@ export default {
             },
 
         // Выбор города
-            CitySelectionOpen() {
+            CitySelectionOpen(redirect) {
+                if (typeof redirect !== 'string') redirect = 'Profile'
+                this.CitySelectionRedirect = redirect
                 this.CitySelection.search = this.UserProfileCityTitle
                 this.activePanel = 'CitySelection'
             },
             CitySelectionClose() {
 
-                this.activePanel = 'Profile'
+                this.activePanel = this.CitySelectionRedirect || 'Profile'
             },
             CitySelectionChange: _.debounce(
                 function(e) {
+                    dsApi.send('Cities/' + e, {}, (data) => {
+                        console.log(data)
+                    })
+
                     if (!e.length) {
                         this.CitySelection.list = [];
                         this.CitySelection.search = '';
@@ -363,6 +421,37 @@ export default {
 
 pre {
     white-space: pre-wrap;
+}
+
+.savedNotification {
+    color: #999;
+    opacity: 0;
+    transition: .2s;
+    font-size: .8rem;
+    height: 0;
+}
+.savedNotification.shown {
+    opacity: 1;
+}
+
+.ProfileLoadingSpinner.Spinner--android,
+.ProfileLoadingSpinner.Spinner--ios {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.UserProfileBlock {
+    opacity: 0;
+    transition: .3s;
+    min-height: 104px;
+}
+.UserProfileBlock.shown {
+    opacity: 1;
+}
+
+.Search--ios.Search--default .Search__after-width {
+    background: transparent;
+    color: transparent;
 }
 
 </style>
