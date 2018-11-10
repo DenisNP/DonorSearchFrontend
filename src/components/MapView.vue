@@ -46,7 +46,14 @@ export default {
       center: [30.315, 59.939],
       zoom: 12,
       mapHeight: "",
-      markers: [],
+      markers: [
+        {"coordinates":[30.315, 59.939],"classes":["marker", "station-active"]},
+        {"coordinates":[30.324, 59.928],"classes":["marker", "station-active"]},
+        {"coordinates":[30.334, 59.918],"classes":["marker", "station-normal"]},
+        {"coordinates":[30.314, 59.908],"classes":["marker", "station-normal"]},
+        {"coordinates":[30.325, 59.940],"classes":["marker", "station-disabled"]},
+        {"coordinates":[30.304, 59.920],"classes":["marker", "station-disabled"]}
+      ],
       mapMarkers: [],
       popup: {
         opened: false
@@ -102,6 +109,8 @@ export default {
     },
 
     updateMarkers(_markers) {
+      let self = this;
+
       this.mapMarkers.forEach((mm) => {
           mm && mm.remove && mm.remove();
       });
@@ -113,31 +122,22 @@ export default {
         if(mData.classes) {
           el.className = mData.classes.join(" ");
         }
+
+        el.onclick = function() {
+          self.stationClicked(mData);
+        };
+
         let m = new window.mapboxgl.Marker(el)
           .setLngLat(mData.coordinates)
           .addTo(this.map);
 
         this.mapMarkers.push(m);
       }
+    },
+
+    stationClicked(data) {
+      console && console.log(data);
     }
-    /*updateFeatures() {
-      this.map.getSource('blood_banks').setData(this.features);
-    },*/
-
-    /*mapClick(map, e) {
-
-      this.popup.opened = true;
-
-      const clickedFeatures = map.queryRenderedFeatures(e.point, {
-        layers: ['blood_banks']
-      });
-      if (!clickedFeatures.length) {
-        return;
-      }
-
-      const feature = clickedFeatures[0];
-      console && console.log(feature.properties);
-    }*/
   },
   watch: {
     markers: {
@@ -165,5 +165,48 @@ export default {
 	height: 100vh;
 }
 
+.marker {
+  width: 70px;
+  height: 50px;
+}
+
+@keyframes station-active-pulse {
+    0% {
+      background-position: 0px 0;
+    }
+    33% {
+      background-position: -70px 0;
+    }
+    67% {
+      background-position: -140px 0;
+    }
+}
+
+.station-active {
+  background-image: url('../assets/full_blood_active.svg');
+  background-repeat: no-repeat;
+  background-size: 210px;
+  background-position: 0 0;
+  z-index: 10;
+
+  animation: station-active-pulse 2s steps(1) infinite;
+}
+
+.station-normal {
+  background-image: url('../assets/full_blood.svg');
+  background-repeat: no-repeat;
+  background-size: 70px;
+  background-position: 0 0;
+  z-index: 5;
+}
+
+.station-disabled {
+  background-image: url('../assets/full_blood_disabled.svg');
+  background-repeat: no-repeat;
+  background-size: 60px;
+  background-position: 0 0;
+  width: 60px!important;
+  /*opacity: 0.7;*/
+}
 
 </style>
