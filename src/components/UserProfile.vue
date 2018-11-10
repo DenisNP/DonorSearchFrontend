@@ -4,7 +4,7 @@
             <Panel id="Profile">
                 <PanelHeader>Профиль</PanelHeader>
 
-                <Group v-if="this.DSProfile._ready">
+                <Group v-if="DSProfile._ready">
                     <Cell size="l"
                         :description="UserProfileCityTitle"
                     >
@@ -258,10 +258,13 @@ export default {
             this.VKProfile.id = 5000;
 
             dsApi.send('users/' + this.VKProfile.id, {}, (data) => {
-                this.DSProfile = data;
-                this.DSProfile._ready = true;
+                this.DSProfile = Object.assign(data, {
+                    _ready: true
+                });
             }, () => {
-                this.DSProfile._ready = true;
+                this.DSProfile = Object.assign({}, {
+                    _ready: true
+                });
             });
         },
         DSProfileSet() {
