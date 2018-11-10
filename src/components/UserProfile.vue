@@ -9,12 +9,6 @@
                 DonorSearch
             </PanelHeader>
 
-            <DSCard title="Заголовок карточки" text="Текст карточки" icon="search" v-model="testModel">
-                Test
-            </DSCard>
-
-            {{testModel}}
-
             <Group>
                 <template v-if="!DSProfileReady">
                     <Spinner class="ProfileLoadingSpinner" />
@@ -54,12 +48,13 @@
                 </List>
             </Group>
 
-            <Group title="Что сдавать?">
+            <Group title="Что будете сдавать?" class="DonationTypesList">
                 <List class="DonationTypes">
-                    <Cell v-for="(type, index) in DonationTypes" :key="index">
+                    <Cell v-for="(type, index) in DonationTypes" :key="index" :description="type.text">
                         <Avatar :src="type.icon" :size="28" slot="before" />
                         {{type.title}}
-                        <VKSwitch slot="asideContent" />
+
+                        <Checkbox v-model="DonationTypesMask[index]" slot="asideContent" />
                     </Cell>
                 </List>
             </Group>
@@ -158,7 +153,6 @@
 
 <script>
 
-import DSCard from './DSCard.vue'
 import DSProfile from '../DSProfile'
 
 import Debug from '../Debug'
@@ -225,15 +219,29 @@ export default {
                 date.getMonth() + 1,
                 date.getDate()
             ].join('-');
+
             this.DSProfileNotFirst = !this.DSProfile.is_first_donor;
+
+            this.DonationTypesMask = (!this.DSProfile.blood_class_ids)
+                ?  new Array(6).fill(false)
+                : (+this.DSProfile.blood_class_ids).toString(2).split('').reverse();
+            this.DonationTypesMask = this.DonationTypesMask.map((v) => { return v == 1})
+        },
+        DonationTypesMask(val) {
+            let mask = parseInt(val.map((v) => {
+                return v ? '1' : '0'
+            }).reverse().join(''), 2);
+
+            if (mask != DSProfile.get('blood_class_ids')) {
+                DSProfile.set({
+                    blood_class_ids: mask
+                }, true, (response) => {
+                    Debug.log({'maskUpdated': response})
+                });
+            }
         }
     },
     data() {
-        return {
-            testModel: true,
-            globalProfile: DSProfile,
-
-            data() {
         return {
             testModel: true,
             globalProfile: DSProfile,
@@ -280,31 +288,38 @@ export default {
             ],
 
             // Массив типов донации
+            DonationTypesMask: new Array(6).fill(false),
             DonationTypes: [
                 {
                     icon: 'https://developer.donorsearch.org/design_elements/dropplets/full_blood.svg',
                     title: 'Цельная кровь',
-                    key: 'full_blood'
-                }, {
-                    icon: 'https://developer.donorsearch.org/design_elements/dropplets/eritocites.svg',
-                    title: 'Эритроциты',
-                    key: 'eritocites'
-                }, {
-                    icon: 'https://developer.donorsearch.org/design_elements/dropplets/granulocites.svg',
-                    title: 'Гранулоциты',
-                    key: 'granulocites'
-                }, {
-                    icon: 'https://developer.donorsearch.org/design_elements/dropplets/liekocites.svg',
-                    title: 'Лейкоциты',
-                    key: 'liekocites'
+                    key: 'full_blood',
+                    text: '',
                 }, {
                     icon: 'https://developer.donorsearch.org/design_elements/dropplets/plazma.svg',
                     title: 'Плазма',
-                    key: 'plazma'
+                    key: 'plazma',
+                    text: 'Применяется при массивных кровотечениях, ожогах, для производства важнейших медицинских препаратов'
+                }, {
+                    icon: 'https://developer.donorsearch.org/design_elements/dropplets/eritocites.svg',
+                    title: 'Эритроциты',
+                    key: 'eritocites',
+                    text: 'При анемии (в т.ч. при большой кровопотере)'
+                }, {
+                    icon: 'https://developer.donorsearch.org/design_elements/dropplets/granulocites.svg',
+                    title: 'Гранулоциты',
+                    key: 'granulocites',
+                    text: 'Применяются по показаниям лечащего врача при ряде онкологических заболеваний'
+                }, {
+                    icon: 'https://developer.donorsearch.org/design_elements/dropplets/liekocites.svg',
+                    title: 'Лейкоциты',
+                    key: 'liekocites',
+                    text: 'Применяются по показаниям лечащего врача при ряде онкологических заболеваний'
                 }, {
                     icon: 'https://developer.donorsearch.org/design_elements/dropplets/trombocites.svg',
                     title: 'Тромбоциты',
-                    key: 'trombocites'
+                    key: 'trombocites',
+                    text: 'Применяются при массивных кровотечениях, онкологических заболеваниях'
                 }
             ]
         }
@@ -454,8 +469,7 @@ export default {
             }
     },
     components: {
-      Input,
-      DSCard
+        Input
     }
 }
 
@@ -504,6 +518,12 @@ pre {
 .Search--ios.Search--default .Search__after-width {
     background: transparent;
     color: transparent;
+}
+
+.DonationTypesList .Cell__description:not(:empty) {
+    overflow: visible;
+    white-space: initial;
+    line-height: 20px;
 }
 
 </style>
