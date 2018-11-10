@@ -52,9 +52,10 @@ export default {
         VK.init(() => {
           client_type = CLIENT_VK_IFRAME;
           callback();
-        },() => {
+        },(err) => {
           client_type = CLIENT_SITE;
           callback();
+          Debug.log(["VK SDK error: ", err]);
         });
       } catch(ex) {
         client_type = CLIENT_SITE;

@@ -158,8 +158,8 @@
 import Debug from '../Debug'
 import EventBus from '../EventBus'
 
-import '@denull/vkui'
-// import { Input } from '@denull/vkui/src/components'
+//import '@denull/vkui'
+import { Input } from '@denull/vkui/src/components'
 import { platform, IOS, ANDROID } from '@denull/vkui'
 
 import _ from 'lodash'
@@ -467,6 +467,9 @@ export default {
                     city: this.DSProfile.city
                 });
             }
+    },
+    components: {
+      Input
     }
 }
 
