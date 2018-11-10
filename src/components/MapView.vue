@@ -16,7 +16,7 @@
         @map-load="loaded"
         @map-click="mapClick"
       ></Mapbox>
-      <BottomPopup :opened="popup.opened">
+      <BottomPopup :opened="popup.opened" collapsible @close="popup.opened = false">
         Test test
       </BottomPopup>
     </Panel>

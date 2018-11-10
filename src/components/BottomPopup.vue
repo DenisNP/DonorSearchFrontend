@@ -1,10 +1,11 @@
 <template>
-  <div class="BottomPopup"
+  <div v-pan="onPan" class="BottomPopup"
   :style="cssProps"
   :class="{
     hidden: !opened,
     opened: opened,
-    collapsed: opened && collapsed
+    collapsed: opened && collapsed,
+    fast: isMoving
   }">
     <div
       class="ClickHandler"
@@ -24,29 +25,74 @@ export default {
   name: 'BottomPopup',
   props: {
     opened: Boolean,
-    collapsed: Boolean,
+    collapsible: Boolean,
     outsideClickEnabled: Boolean,
     collapsedHeight: Number,
-    openedHeight: Number
+    openedHeight: Number,
+    collapsedOnStart: {
+      type: Boolean,
+      default: false
+    }
   },
   data() {
     return {
-
+      translateY: 0,
+      isMoving: false,
+      collapsed: this.collapsedOnStart
     };
   },
   computed: {
     cssProps() {
-      let ch = this.collapsedHeight || 100;
-      let oh = this.openedHeight || 300;
       return {
-        '--collapsed-height': ch + 'px',
-        '--opened-height': oh + 'px'
+        '--collapsed-height': (this.colHeight - this.translateY) + 'px',
+        '--opened-height': (this.openHeight - this.translateY) + 'px'
       }
+    },
+    colHeight() {
+      return this.collapsedHeight || 150;
+    },
+    openHeight() {
+      return this.openedHeight || 300;
     }
   },
   methods: {
     clickedOutside() {
-      this.$emit('clickedOutside');
+      this.$emit('close');
+      this.collapsed = this.collapsedOnStart;
+    },
+    onPan(e) {
+      //console && console.log(e);
+      let t = e.deltaY;
+      let limit = this.openHeight * 0.5;
+      if(t < -limit) {
+        this.translateY = -limit;
+      }else{
+        this.translateY = t;
+      }
+
+      this.isMoving = true;
+
+      if(e.isFinal) {
+        this.translateY = 0;
+        this.isMoving = false;
+
+        let diff = (this.openHeight - this.colHeight);
+        if(this.collapsed) {
+          if(t < -0.3 * diff) {
+            this.collapsed = false;
+          } else if (t >= 0.3 * this.colHeight ){
+            this.$emit('close');
+            this.collapsed = this.collapsedOnStart;
+          }
+        } else {
+          if(t > 0.5 * diff && t < diff - (-this.colHeight * 0.3)) {
+            this.collapsed = true;
+          } else if(t > this.openHeight * 0.45) {
+            this.$emit('close');
+            this.collapsed = this.collapsedOnStart;
+          }
+        }
+      }
     }
   }
 }
@@ -102,6 +148,19 @@ export default {
        -o-transition-timing-function: cubic-bezier(0.770, 0.000, 0.175, 1.000);
           transition-timing-function: cubic-bezier(0.770, 0.000, 0.175, 1.000);
 }
+
+.BottomPopup.fast {
+  -webkit-transition: 0s;
+     -moz-transition: 0s;
+       -o-transition: 0s;
+          transition: 0s;
+
+  -webkit-transition-timing-function: linear;
+     -moz-transition-timing-function: linear;
+       -o-transition-timing-function: linear;
+          transition-timing-function: linear;
+}
+
 .BottomPopup.hidden {
   bottom: -100vh;
 }
