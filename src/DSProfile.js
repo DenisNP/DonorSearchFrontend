@@ -20,12 +20,9 @@ export default {
 		bone_marrow: 			null,
 		cant_to_be_donor: null,
 		donor_pause_to: 	null,
-<<<<<<< HEAD
 		has_registration: null,
 		first_name: 			null,
-		last_name: 				null
-=======
-		has_registration: 	null,
+		last_name: 				null,
 		first_name: 		null,
 		last_name: 			null,
 		is_first_donor: 	null
