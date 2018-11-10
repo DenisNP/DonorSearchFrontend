@@ -1,29 +1,51 @@
-window.mapboxgl = require('mapbox-gl')
+// Mapbox
+    window.mapboxgl = require('mapbox-gl')
 
-import Vue from 'vue'
+// Vue
+    import Vue from 'vue'
 
-import VueRouter from 'vue-router'
-Vue.use(VueRouter)
+// Application main component
+    import App from './App.vue'
 
-import App from './App.vue'
+// Vue router
+    import VueRouter from 'vue-router'
+    Vue.use(VueRouter)
 
-import '@denull/vkui/src/styles/generated/palette.css';
-import '@denull/vkui/src/styles/generated/client_light.css';
+    const router = new VueRouter({
+        mode: 'history',
+        routes: []
+    })
 
-const Hammer = require('hammerjs');
+// VKUI Stylesheets
+    import '@denull/vkui/src/styles/generated/palette.css';
+    import '@denull/vkui/src/styles/generated/client_light.css';
 
-Vue.directive("pan", {
-  bind: function(el, binding) {
-    if (typeof binding.value === "function") {
-      const mc = new Hammer(el);
-      mc.get("pan").set({ direction: Hammer.DIRECTION_ALL });
-      mc.on("pan", binding.value);
-    }
-  }
-});
+// VKUI Layout & VueRouter connection
+    import { Epic, Root, VKView } from '@denull/vkui/src/components'
+    import VKUIRouter from './plugins/vkui-vue-router'
 
-Vue.config.productionTip = false
+    Epic.mixins = [VKUIRouter.RootMixin]
+    Root.mixins = [VKUIRouter.RootMixin]
+    VKView.mixins = [VKUIRouter.VKViewMixin]
 
-new Vue({
-  render: h => h(App),
-}).$mount('#app')
+// Hammer component for pulling panels
+    const Hammer = require('hammerjs');
+
+    Vue.directive("pan", {
+        bind: function(el, binding) {
+            if (typeof binding.value === "function") {
+                const mc = new Hammer(el);
+                mc.get("pan").set({ direction: Hammer.DIRECTION_ALL });
+                mc.on("pan", binding.value);
+            }
+        }
+    });
+
+//
+    Vue.config.productionTip = false
+
+// Render Application in #app container
+    new Vue({
+      render: h => h(App),
+      router
+    }).$mount('#app')

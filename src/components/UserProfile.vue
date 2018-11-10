@@ -2,7 +2,7 @@
     <div class="UserProfile">
         <VKView v-bind="$attrs" :activePanel="activePanel">
             <Panel id="Profile">
-                <PanelHeader>Профиль</PanelHeader>
+                <PanelHeader>Профиль DonorSearch</PanelHeader>
 
                 <Group v-if="DSProfile._ready">
                     <Cell size="l"
@@ -53,7 +53,7 @@
 
             <Panel id="ProfileEdit">
                 <PanelHeader>
-                    <HeaderButton slot="left">
+                    <HeaderButton slot="left" @click="ProfileEditClose">
                         <template v-if="osname === 'IOS'">
                             Отмена
                         </template>
@@ -285,6 +285,10 @@ export default {
 
             this.activePanel = 'ProfileEdit';
         },
+        ProfileEditClose() {
+            
+            this.activePanel = 'Profile';
+        },
         ProfileEditSave() {
 
             this.DSProfileSet();
@@ -293,7 +297,7 @@ export default {
 
         // Выбор города
         CitySelectionOpen() {
-
+            this.CitySelection.search = this.UserProfileCityTitle
             this.activePanel = 'CitySelection'
         },
         CitySelectionClose() {
