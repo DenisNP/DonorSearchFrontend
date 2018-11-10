@@ -266,11 +266,13 @@ export default {
     data() {
         return {
             globalProfile: DSProfile,
+
+            // Alert
             alertShown: false,
             alertActions: [
               {
                 'title':'ОК',
-                'action':this.closeAlert
+                'action': this.closeAlert
               }
             ],
 
@@ -456,6 +458,7 @@ export default {
 
             closeAlert() {
               this.alertShown = false;
+              EventBus.$emit('VKCInit');
             }
     },
     components: {
