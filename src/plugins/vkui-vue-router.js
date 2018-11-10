@@ -1,5 +1,3 @@
-import Vue from 'vue'
-
 let VKUIRouterStateVar = null;
 let VKUIRouterRoot = null;
 let VKUIRouterPath = {};
@@ -55,11 +53,9 @@ function RouterPathSet(path) {
 	}
 
 	if (!VKUIRouterRoot.$router) {
-		console.warn('[VKUIRouterRoot.$router] not founded');
+		// console && console.warn('[VKUIRouterRoot.$router] not founded');
 		return;
 	}
-
-	console.log(VKUIRouterPath)
 
 	if (!VKUIRouterPath.view) VKUIRouterRoot.$router.push('/');
 	else if (!VKUIRouterPath.panel) VKUIRouterRoot.$router.push(VKUIRouterPath.view);
