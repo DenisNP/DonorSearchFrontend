@@ -4,73 +4,60 @@
             <Panel id="Profile">
                 <PanelHeader>Профиль</PanelHeader>
 
-                <Group v-if="VKProfile.id">
+                <Group v-if="this.DSProfile._ready">
                     <Cell size="l"
-                        :description="VKProfile.city.title"
+                        :description="UserProfileCityTitle"
                     >
                         <Button level="secondary" slot="bottomContent">Редактировать</Button>
-                        {{VKProfileFullName}}
+                        {{UserProfileFullName}}
                         <Avatar :src="VKProfile.photo_100" :size="80" slot="before" />
                     </Cell>
-                </Group>
-
-                <Group>
-                    <Div><center><Button @click="DSProfileGet">
-                        Получить профиль DS
-                    </Button></center></Div>
-                    <Div><center><Button @click="VKProfileGet">
-                        Получить профиль VK
-                    </Button></center></Div>
-
-                    <Div><pre>{{DSProfile}}</pre></Div>
-                </Group>
-
-                <Group>
-                    <template v-if="VKProfile.id">
-                        <Header level="2">
-                            Кто ты?
-                        </Header>
-                        <List>
-                            <Cell><InfoRow title="VK ID">   {{VKProfile.id}}</InfoRow></Cell>
-                            <Cell><InfoRow title="Имя">     {{VKProfile.first_name}}</InfoRow></Cell>
-                            <Cell><InfoRow title="Фамилия"> {{VKProfile.last_name}}</InfoRow></Cell>
-                        </List>
-                    </template>
-
-                    <Div v-else><center>
-                        <Button @click="VKAuth">Войти через ВКонтакте</Button>
-                    </center></Div>
                 </Group>
 
                 <Group title="Где сдавать?">
                     <List>
                         <Cell expandable @click="CitySelectionOpen" indicator="Выбрать">
                             <vkui-icon :size="24" name="place" slot="before" />
-                            
+                            {{UserProfileCityTitle || 'Не выбран'}}
                         </Cell>
                     </List>
                 </Group>
 
-                <Group title="Отладка">
-                    <Div>
-                        <pre>DSProfile: {{DSProfile}}</pre>
-                        <pre>VKProfile: {{VKProfile}}</pre>
-                    </Div>
+                
+
+                <Group title="Когда сдавать?">
+                    <List>
+                        <Cell expandable @click="CitySelectionOpen" indicator="Выбрать">
+                            <vkui-icon :size="24" name="place" slot="before" />
+                            {{UserProfileCityTitle || 'Не выбран'}}
+                        </Cell>
+                    </List>
+                </Group>
+
+                <Group title="Что сдавать?">
+                    <List class="DonationTypes">
+                        <Cell v-for="(type, index) in DonationTypes" :key="index">
+                            <Avatar :src="type.icon" :size="28" slot="before" />
+                            {{type.title}}
+                            <VKSwitch slot="asideContent" />
+                        </Cell>
+                    </List>
                 </Group>
             </Panel>
+
             <Panel id="CitySelection">
                 <PanelHeader no-shadow>
                     <Search theme="header"
                         :value="CitySelection.search"
+                        @close="CitySelectionClose"
                         @input="CitySelectionChange"
                     />
                 </PanelHeader>
 
-
-
                 <List v-if="CitySelection.list.length">
                     <Cell v-for="(item, index) in CitySelection.list"
                         :key="index"
+                        :description="item.region"
                         @click="CitySelectionChoose(item)"
                     >
                         {{item.name}}
@@ -106,8 +93,44 @@ export default {
         }
     },
     computed: {
-        VKProfileFullName() {
-            return this.VKProfile.first_name + ' ' + this.VKProfile.last_name;
+        UserProfileFullName() {
+            let fullName = [];
+
+            if (this.DSProfile.first_name) {
+                fullName.push(this.DSProfile.first_name);
+            } else if (this.VKProfile.first_name) {
+                fullName.push(this.VKProfile.first_name);
+            }
+
+            if (this.DSProfile.last_name) {
+                fullName.push(this.DSProfile.last_name);
+            } else if (this.VKProfile.last_name) {
+                fullName.push(this.VKProfile.last_name);
+            }
+
+            return fullName.join(' ');
+        },
+        UserProfileCityTitle() {
+            let cityTitle = '';
+
+            if (this.DSProfile.city && this.DSProfile.title) {
+                cityTitle = this.DSProfile.city.title;
+            } else if (this.VKProfile.city && this.VKProfile.city.title) {
+                cityTitle = this.VKProfile.city.title;
+            }
+
+            return cityTitle;
+        },
+        UserProfileAvatar() {
+            let avatar = '';
+
+            if (this.DSProfile.avatar) {
+                avatar = this.DSProfile.avatar;
+            } else if (this.VKProfile.photo_100) {
+                avatar = this.VKProfile.photo_100;
+            }
+
+            return avatar;
         }
     },
     data() {
@@ -120,30 +143,59 @@ export default {
             cities: [
                 {
                     id: 1,
-                    name: 'Санкт-Петербург'
+                    name: 'Санкт-Петербург',
+                    region: 'Ленинградская область'
                 }, {
                     id: 2,
-                    name: 'Москва'
+                    name: 'Москва',
+                    region: 'Московская область'
                 }, {
                     id: 3,
-                    name: 'Казань'
+                    name: 'Казань',
+                    region: 'Казанская область'
                 }
             ],
 
             CitySelection: {
                 search: '',
                 list: []
-            }
+            },
+
+            DonationTypes: [
+                {
+                    icon: 'https://developer.donorsearch.org/design_elements/dropplets/full_blood.svg',
+                    title: 'Цельная кровь'
+                }, {
+                    icon: 'https://developer.donorsearch.org/design_elements/dropplets/eritocites.svg',
+                    title: 'Эритроциты'
+                }, {
+                    icon: 'https://developer.donorsearch.org/design_elements/dropplets/granulocites.svg',
+                    title: 'Гранулоциты'
+                }, {
+                    icon: 'https://developer.donorsearch.org/design_elements/dropplets/liekocites.svg',
+                    title: 'Лейкоциты'
+                }, {
+                    icon: 'https://developer.donorsearch.org/design_elements/dropplets/plazma.svg',
+                    title: 'Плазма'
+                }, {
+                    icon: 'https://developer.donorsearch.org/design_elements/dropplets/trombocites.svg',
+                    title: 'Тромбоциты'
+                }
+            ]
         }
     },
     mounted() {
-        this.VKAuth()
+        this.VKAuth(() => {
+            this.VKProfileGet()
+        })
+
+        this.DSProfileGet()
     },
     methods: {
-        VKAuth() {
+        VKAuth(callback = () => {}) {
             VKC.init(VK_ACCESS_TOKEN, () => {
                 VKC.auth(VK_APP_ID, 'email,friends', () => {
-                    this.VKProfileGet();
+                    callback()
                 });
             });
         },
@@ -160,14 +212,17 @@ export default {
             this.VKProfile.id = 5000
 
             dsApi.send('users/' + this.VKProfile.id, {}, (data) => {
-                debugger;
+                this.DSProfile = data;
+                this.DSProfile._ready = true;
             });
         },
 
         CitySelectionOpen() {
             this.activePanel = 'CitySelection'
         },
-
+        CitySelectionClose() {
+            this.activePanel = 'Profile'
+        },
         CitySelectionChange: _.debounce(
             function(e) {
                 if (!e.length) {
@@ -196,6 +251,10 @@ export default {
 
 .UserProfile {
     text-align: left;
+}
+
+.DonationTypes .Avatar__img {
+    background-color: transparent;
 }
 
 pre {
