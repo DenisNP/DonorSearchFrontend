@@ -286,15 +286,15 @@ export default {
         EventBus.$on('VKCInit', () => {
             let self = this;
 
-            console.log('VKCInit')
+            Debug.log('VKCInit')
 
             VKC.auth(VK_APP_ID, 'email,friends', (data) => {
-                console.log('response', data)
+                Debug.log({'response': data})
 
                 self.VKProfileGet();
                 self.DSProfileGet();
             }, (error) => {
-                console.log('error', data)
+                Debug.log({'error': data})
             })
         });
     },
@@ -313,6 +313,7 @@ export default {
                 VKC.quickApi('users.get', {
                     fields: 'sex,bdate,photo_100,city,country'
                 }, (data) => {
+                    Debug.log({'users.get': data})
                     if (data.data.response && data.data.response.length) {
                         this.VKProfile = data.data.response[0]
                         this.VKProfile.id = 5000
@@ -338,6 +339,7 @@ export default {
                 this.VKProfile.id = 5000;
 
                 dsApi.send('users/' + this.VKProfile.id, {}, (data) => {
+                    Debug.log({'users/response': data})
                     for(let key in data) {
                         if (!data[key]) delete data[key];
                     }
@@ -345,12 +347,14 @@ export default {
                         _ready: true
                     }));
                 }, () => {
+                    Debug.log({'users/error': data})
                     this.DSProfileSet({
                         _ready: true
                     });
                 });
             },
             DSProfileSet(data) {
+                Debug.log({'DSProfileSet': data})
                 for(let key in data) {
                     if (!this.DSProfile[key] && data[key]) {
                         this.DSProfile[key] = data[key];

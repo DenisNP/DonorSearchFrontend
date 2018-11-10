@@ -1,9 +1,9 @@
 let debug = [];
 
 export default {
-  log: () => {
-    console && console.log(arguments);
-    debug = debug.concat(arguments);
+  log: (o) => {
+    console && console.log(o);
+    debug = debug.concat(o);
   },
 
   get: debug
