@@ -20,10 +20,23 @@ export default {
 		bone_marrow: 			null,
 		cant_to_be_donor: null,
 		donor_pause_to: 	null,
+<<<<<<< HEAD
 		has_registration: null,
 		first_name: 			null,
 		last_name: 				null
+=======
+		has_registration: 	null,
+		first_name: 		null,
+		last_name: 			null,
+		is_first_donor: 	null
+>>>>>>> origin/master
 	},
+	keys: [
+		'avatar', 'vk_id', 'second_name', 'maiden_name', 'bdate', 'gender',
+		'city_id', 'city_title', 'region_title', 'about_self', 'blood_type',
+		'blood_class_ids', 'bone_marrow', 'cant_to_be_donor', 'donor_pause_to',
+		'has_registration', 'first_name', 'last_name', 'is_first_donor'
+	],
 
 	timeline: {
 		"id": 0,
@@ -83,8 +96,10 @@ export default {
 		},
 
 	// Set new data to stored object and maybe save to DB
-		set(data = {}, save = false, onSuccess = () => {}, onError = () => {}) {
-			if (typeof data !== 'object') return;
+		set(newData = {}, save = false, onSuccess = () => {}, onError = () => {}) {
+			if (typeof newData !== 'object') newData = {};
+
+			let data = Object.assign(this.get(), newData);
 
 			for(let key in data) {
 				if (key in this.data) {
@@ -131,7 +146,7 @@ export default {
 							bdate = new Date(bdate[2], bdate[1] - 1, bdate[0])
 							bdate = bdate.getTime();
 							if (!isNaN(bdate)) {
-								_data.bdate = bdate
+								_data.bdate = new Date(bdate).toJSON()
 							}
 						}
 						break;
