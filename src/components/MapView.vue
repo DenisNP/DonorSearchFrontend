@@ -102,9 +102,6 @@ export default {
       normalIcon: "https://developer.donorsearch.org/design_elements/dropplets/full_blood.svg"
     }
   },
-  computed: {
-
-  },
   mounted() {
     let vue_header = document.getElementsByClassName('View__header')[0].offsetHeight;
     let tabbar = document.getElementsByClassName('Tabbar')[0].offsetHeight;
@@ -232,7 +229,7 @@ export default {
     assumeHeight() {
       let s = this.station;
       if(!s) return 200;
-      let tHeight = s.title.length / (155.0/4.0) * 20.0 + 29.0;
+      let tHeight = s.title.length / (155.0/5.0) * 20.0 + 29.0;
       if(s.address)
         tHeight -= -68;
       if(s.phones)

@@ -96,7 +96,7 @@ export default {
               this.collapsed = this.collapsedOnStart;
             }
           }else{
-            if(t > this.openHeight * 0.45) {
+            if(t > this.openHeight * 0.55) {
               this.$emit('close');
               this.collapsed = this.collapsedOnStart;
             }

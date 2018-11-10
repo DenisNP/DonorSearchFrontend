@@ -2,13 +2,13 @@
   <div id="app" :class="clientType">
     <Epic :activeStory="activeStory">
       <Tabbar slot="tabbar">
-        <TabbarItem :selected='activeStory == "profile"' @click='activeStory="profile"'>
+        <TabbarItem :selected='activeStory == "profile"' @click='setActiveStory("profile")'>
           <vkui-icon name="user" size="28" />
         </TabbarItem>
-        <TabbarItem :selected='activeStory == "map"' @click='activeStory="map"'>
+        <TabbarItem :selected='activeStory == "map"' @click='setActiveStory("map")'>
           <vkui-icon name="place" size="28" />
         </TabbarItem>
-        <TabbarItem :selected='activeStory == "timeline"' @click='activeStory="timeline"'>
+        <TabbarItem :selected='activeStory == "timeline"' @click='setActiveStory("timeline")'>
           <vkui-icon name="recent_outline" size="28" />
         </TabbarItem>
       </Tabbar>
@@ -22,6 +22,7 @@
 <script>
 
 import { Epic, Tabbar, TabbarItem } from '@denull/vkui/src/components'
+import DSProfile from './DSProfile'
 import UserProfile from './components/UserProfile'
 import MapView from './components/MapView'
 import Timeline from './components/Timeline'
@@ -64,11 +65,20 @@ export default {
         return {
             activeStory: 'profile',
             mapInitialized: false,
-            clientType: "client--not-initialized"
+            clientType: "client--not-initialized",
+            globalProfile: DSProfile.data
         }
     },
     methods: {
+      setActiveStory(as) {
+        if(as == this.activeStory) return;
 
+        if(this.globalProfile.city_id) {
+          this.activeStory = as;
+        } else {
+          EventBus.$emit('show-alert');
+        }
+      }
     }
 }
 
@@ -90,7 +100,7 @@ body, html: {
     width: 10px;
 }
 .client--vkiframe ::-webkit-scrollbar-track {
-    background: var(--background_page); 
+    background: var(--background_page);
 }
 .client--vkiframe ::-webkit-scrollbar-thumb {
     background: var(--accent);
@@ -98,7 +108,7 @@ body, html: {
     border-radius: 5px;
 }
 .client--vkiframe ::-webkit-scrollbar-thumb:hover {
-    background: #555; 
+    background: #555;
 }
 
 </style>

@@ -1,5 +1,8 @@
 <template>
     <VKView v-bind="$attrs" :activePanel="activePanel" class="UserProfile">
+      <Alert :actions="alertActions" slot="popout" v-if="alertShown" :onClose="closeAlert">
+        Необходимо авторизоваться!
+      </Alert>
         <Panel id="Profile">
             <PanelHeader>
                 Профиль DonorSearch
@@ -102,7 +105,7 @@
 
                     <div class="saveBtnContainer">
                         <Button @click="DSProfileSave">Сохранить</Button>
-                        
+
                         <span class="savedNotification"
                             :class="{
                                 shown: DSProfile._saved !== false,
@@ -263,6 +266,13 @@ export default {
     data() {
         return {
             globalProfile: DSProfile,
+            alertShown: false,
+            alertActions: [
+              {
+                'title':'ОК',
+                'action':this.closeAlert
+              }
+            ],
 
             // VKUI osname
             osname: platform(),
@@ -338,6 +348,11 @@ export default {
             }, (error) => {
                 Debug.log({'error': error})
             })
+        });
+
+        let self = this;
+        EventBus.$on('show-alert',() => {
+          self.alertShown = true;
         });
     },
     methods: {
@@ -437,6 +452,10 @@ export default {
                     city_title: city.title,
                     region_title: city.region && city.region.title
                 });
+            },
+
+            closeAlert() {
+              this.alertShown = false;
             }
     },
     components: {

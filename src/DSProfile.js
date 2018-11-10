@@ -25,6 +25,10 @@ export default {
 		last_name: 			null
 	},
 
+	timeline: {
+		
+	},
+
 	_loaded: false,
 
 	// Is VK_id stored
@@ -53,7 +57,7 @@ export default {
 		},
 
 	// Get stored data
-		get(key = '') { 
+		get(key = '') {
 
 			return key ? this.data[key] : Object.assign({}, this.data);
 		},
@@ -100,7 +104,7 @@ export default {
 					case 'photo_100':
 						_data.avatar = data[key];
 						break;
-					
+
 					case 'bdate':
 						let bdate = data[key].split('.');
 						if (bdate.length == 3) {
