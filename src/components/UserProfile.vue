@@ -47,6 +47,9 @@
                 <Div><pre>
                     {{DSProfile}}
                 </pre></Div>
+                <Div><pre>
+                    {{debugData}}
+                </pre></Div>
             </Group>
         </Panel>
 
@@ -62,9 +65,9 @@
                 Личные данные
             </PanelHeader>
 
-            <div class="savedNotification" :class="{shown: DSProfile._saved}">
+            <!-- <div class="savedNotification" :class="{shown: DSProfile._saved}">
                 <span>изменения сохранены</span>
-            </div>
+            </div> -->
 
             <Group>
                 <FormLayout>
@@ -79,11 +82,11 @@
                     <List>
                         <Cell expandable
                             @click="CitySelectionOpen"
-                            :description="DSProfile.cityRegion"
+                            :description="ProfileCityRegion"
                             :indicator="osname !== 'ios' ? 'Выбрать' : ''"
                         >
                             <vkui-icon :size="24" name="place" slot="before" />
-                            {{DSProfile.cityTitle || 'Не выбран'}}
+                            {{ProfileCityTitle || 'Не выбран'}}
                         </Cell>
                     </List>
 
@@ -139,6 +142,7 @@
 
 <script>
 
+import Debug from '../Debug'
 import EventBus from '../EventBus'
 
 import '@denull/vkui'
@@ -155,6 +159,14 @@ export default {
     name: 'UserProfile',
     props: {},
     computed: {
+        //
+        ProfileCityTitle() {
+            return this.DSProfile.city.name;
+        },
+        ProfileCityRegion() {
+            return this.DSProfile.city.region;
+        },
+
         // Наименование выбранного города пользователя
         selectedCityName() {
             if (this.profile && this.profile.city && this.profile.city.name) {
@@ -209,6 +221,7 @@ export default {
         return {
             // VKUI osname
             osname: platform(),
+            debugData: Debug.get,
 
             // Текущий экран в рамках UserProfile
             activePanel: 'Profile',
@@ -310,10 +323,12 @@ export default {
                             'last_name':    this.VKProfile.last_name,
                             'bdate':        this.VKProfile.bdate,
                             'avatar':       this.VKProfile.photo_100,
-                            'cityId':       this.VKProfile.city.id,
                             'vkId':         this.VKProfile.id,
-                            'cityTitle':    this.VKProfile.city.title,
-                            'cityRegion':   this.VKProfile.country.title
+                            'city': {
+                                id:         this.VKProfile.city.id,
+                                name:       this.VKProfile.city.title,
+                                region:     this.VKProfile.country.title
+                            }
                         });
                     }
                 });
