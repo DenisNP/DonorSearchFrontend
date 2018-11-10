@@ -221,7 +221,7 @@ export default {
         return {
             // VKUI osname
             osname: platform(),
-            debugData: window.debug,
+            debugData: Debug.get(),
 
             // Текущий экран в рамках UserProfile
             activePanel: 'Profile',

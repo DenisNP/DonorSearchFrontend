@@ -3,8 +3,10 @@ let debug = [];
 export default {
   log: (o) => {
     console && console.log(o);
-    debug = debug.concat(o);
+    debug.push(o);
   },
 
-  get: debug
+  get() {
+  	return debug
+  }
 }
