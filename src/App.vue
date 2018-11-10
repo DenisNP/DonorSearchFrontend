@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" :class="clientType">
     <Epic :activeStory="activeStory">
       <Tabbar slot="tabbar">
         <TabbarItem :selected='activeStory == "profile"' @click='activeStory="profile"'>
@@ -46,6 +46,7 @@ export default {
         });
 
         EventBus.$emit('VKCInit');
+        this.clientType = "client--" + VKC.getClientType().toLowerCase();
       });
     },
     watch: {
@@ -61,7 +62,8 @@ export default {
     data() {
         return {
             activeStory: 'profile',
-            mapInitialized: false
+            mapInitialized: false,
+            clientType: "client--not-initialized"
         }
     },
     methods: {

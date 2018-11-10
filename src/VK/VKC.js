@@ -52,10 +52,9 @@ export default {
         VK.init(() => {
           client_type = CLIENT_VK_IFRAME;
           callback();
-        },(err) => {
+        },() => {
           client_type = CLIENT_SITE;
           callback();
-          Debug.log(["VK SDK error: ", err]);
         });
       } catch(ex) {
         client_type = CLIENT_SITE;
@@ -102,6 +101,10 @@ export default {
       'app_id': app_id,
       'scope': scope
     });
+  },
+
+  getClientType: () => {
+    return client_type;
   }
 }
 
@@ -179,7 +182,7 @@ function returnData(data) {
   }
 
   if(data.type == 'VKWebAppAccessTokenReceived' || data.type == 'VKWebAppAccessTokenFailed') {
-    if(data.data.access_token) {
+    if(data.data.access_token || client_type == CLIENT_VK_IFRAME) {
       access_token = data.data.access_token;
       auth_callbacks.success && auth_callbacks.success(data);
     }else{
