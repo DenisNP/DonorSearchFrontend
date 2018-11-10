@@ -142,7 +142,6 @@
 
 <script>
 
-import Debug from '../Debug'
 import EventBus from '../EventBus'
 
 import '@denull/vkui'
@@ -161,10 +160,10 @@ export default {
     computed: {
         //
         ProfileCityTitle() {
-            return this.DSProfile.city.name;
+            return this.DSProfile.city && this.DSProfile.city.name;
         },
         ProfileCityRegion() {
-            return this.DSProfile.city.region;
+            return this.DSProfile.city && this.DSProfile.city.region;
         },
 
         // Наименование выбранного города пользователя
@@ -221,7 +220,7 @@ export default {
         return {
             // VKUI osname
             osname: platform(),
-            debugData: Debug.get,
+            debugData: window.debug,
 
             // Текущий экран в рамках UserProfile
             activePanel: 'Profile',

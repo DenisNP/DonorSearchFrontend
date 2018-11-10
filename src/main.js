@@ -1,3 +1,5 @@
+window.debug = {};
+
 // Mapbox
     window.mapboxgl = require('mapbox-gl')
 
