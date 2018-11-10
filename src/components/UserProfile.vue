@@ -8,7 +8,7 @@
                     <Cell size="l"
                         :description="UserProfileCityTitle"
                     >
-                        <Button level="secondary" slot="bottomContent">Редактировать</Button>
+                        <Button level="secondary" slot="bottomContent" @click="ProfileEditOpen">Редактировать</Button>
                         {{UserProfileFullName}}
                         <Avatar :src="VKProfile.photo_100" :size="80" slot="before" />
                     </Cell>
@@ -43,6 +43,35 @@
                         </Cell>
                     </List>
                 </Group>
+
+                <Group title="Отладка">
+                    <Div><pre>
+                        {{DSProfile}}
+                    </pre></Div>
+                </Group>
+            </Panel>
+
+            <Panel id="ProfileEdit">
+                <PanelHeader>
+                    <HeaderButton slot="left">
+                        <template v-if="osname === 'IOS'">
+                            Отмена
+                        </template>
+                        <vkui-icon :size="24" name="cancel" v-else />
+
+                    </HeaderButton>
+                    Личные данные
+                </PanelHeader>
+
+                <Group>
+                    <FormLayout>
+                        <Input v-model="DSProfile.first_name" top="Имя" />
+                        <Input v-model="DSProfile.last_name" top="Фамилия" />
+                        <Input v-model="DSProfile.bdate" top="Дата рождения" type="date" />
+
+                        <Button @click="ProfileEditSave">Сохранить</Button>
+                    </FormLayout>
+                </Group>
             </Panel>
 
             <Panel id="CitySelection">
@@ -73,6 +102,9 @@
 <script>
 
 import '@denull/vkui'
+import { platform, IOS, ANDROID } from '@denull/vkui'
+
+import GlobalProfile from '../GlobalProfile.js'
 
 import _ from 'lodash'
 
@@ -84,15 +116,16 @@ export default {
     name: 'UserProfile',
     props: {},
     computed: {
+        // Наименование выбранного города пользователя
         selectedCityName() {
             if (this.profile && this.profile.city && this.profile.city.name) {
                 return this.profile.city.name;
             }
 
             return 'Город не выбран';
-        }
-    },
-    computed: {
+        },
+
+        // Приоритетные данных между DonorSearch и VKontakte
         UserProfileFullName() {
             let fullName = [];
 
@@ -135,11 +168,19 @@ export default {
     },
     data() {
         return {
+            GlobalProfile,
+
+            // VKUI osname
+            osname: platform(),
+
+            // Текущий экран в рамках UserProfile
             activePanel: 'Profile',
-            DSProfile: {
-                isEdit: false
-            },
+
+            // Данные от DonorSearch и от VKontakte
+            DSProfile: {},
             VKProfile: {},
+
+            // Временный массив с городами. Заменится на запросы к API
             cities: [
                 {
                     id: 1,
@@ -156,30 +197,38 @@ export default {
                 }
             ],
 
+            // Объекта панели выбора города
             CitySelection: {
                 search: '',
                 list: []
             },
 
+            // Массив типов донации
             DonationTypes: [
                 {
                     icon: 'https://developer.donorsearch.org/design_elements/dropplets/full_blood.svg',
-                    title: 'Цельная кровь'
+                    title: 'Цельная кровь',
+                    key: 'full_blood'
                 }, {
                     icon: 'https://developer.donorsearch.org/design_elements/dropplets/eritocites.svg',
-                    title: 'Эритроциты'
+                    title: 'Эритроциты',
+                    key: 'eritocites'
                 }, {
                     icon: 'https://developer.donorsearch.org/design_elements/dropplets/granulocites.svg',
-                    title: 'Гранулоциты'
+                    title: 'Гранулоциты',
+                    key: 'granulocites'
                 }, {
                     icon: 'https://developer.donorsearch.org/design_elements/dropplets/liekocites.svg',
-                    title: 'Лейкоциты'
+                    title: 'Лейкоциты',
+                    key: 'liekocites'
                 }, {
                     icon: 'https://developer.donorsearch.org/design_elements/dropplets/plazma.svg',
-                    title: 'Плазма'
+                    title: 'Плазма',
+                    key: 'plazma'
                 }, {
                     icon: 'https://developer.donorsearch.org/design_elements/dropplets/trombocites.svg',
-                    title: 'Тромбоциты'
+                    title: 'Тромбоциты',
+                    key: 'trombocites'
                 }
             ]
         }
@@ -205,22 +254,51 @@ export default {
             }, (data) => {
                 if (data.data.response && data.data.response.length) {
                     this.VKProfile = data.data.response[0]
+                    this.VKProfile.id = 5000
                 }
             });
         },
         DSProfileGet() {
-            this.VKProfile.id = 5000
+            this.VKProfile.id = 5000;
 
             dsApi.send('users/' + this.VKProfile.id, {}, (data) => {
                 this.DSProfile = data;
                 this.DSProfile._ready = true;
+            }, () => {
+                this.DSProfile._ready = true;
             });
         },
+        DSProfileSet() {
+            if (!this.VKProfile.id) {
+                console.warn('invalid VKProfile.id');
+                return;
+            }
 
+            this.DSProfile.vkId = this.VKProfile.id;
+
+            dsApi.send('users/' + this.VKProfile.id, this.DSProfile, (data) => {
+                console.log(data)
+            }, 'POST')
+        },
+
+        // Редактирование данных профиля
+        ProfileEditOpen() {
+
+            this.activePanel = 'ProfileEdit';
+        },
+        ProfileEditSave() {
+
+            this.DSProfileSet();
+            this.activePanel = 'Profile';
+        },
+
+        // Выбор города
         CitySelectionOpen() {
+
             this.activePanel = 'CitySelection'
         },
         CitySelectionClose() {
+
             this.activePanel = 'Profile'
         },
         CitySelectionChange: _.debounce(
@@ -235,7 +313,6 @@ export default {
                 this.CitySelection.list.push(this.cities[Math.floor(Math.random()*this.cities.length)]);
             }, 200
         ),
-
         CitySelectionChoose(city) {
             this.DSProfile.city = city;
             this.CitySelection.search = '';
