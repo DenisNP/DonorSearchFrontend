@@ -31,6 +31,12 @@ function handlerSite(params, callback, access_token) {
     payload,
     (result) => {
       getResult(result, callback, params['request_id']);
+    },
+    (error) => {
+      returnResult(callback, {
+        error_type: "Jsonp error",
+        error_data: JSON.stringify(error)
+      }, true);
     }
   );
 }

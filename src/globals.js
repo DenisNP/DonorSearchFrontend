@@ -1,6 +1,6 @@
 import jsonp from 'jsonp';
 
-export function httpRequest(address, params, onComplete, method = 'GET'){
+export function httpRequest(address, params, onComplete, onError, method = 'GET'){
     let xhr = new XMLHttpRequest();
     let postPars = null;
     if(method == 'GET') {
@@ -12,19 +12,27 @@ export function httpRequest(address, params, onComplete, method = 'GET'){
     }
 
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    xhr.onload = function(){
-        if(onComplete !== null)
-            onComplete(JSON.parse(this.responseText));
+    xhr.onreadystatechange  = function(){
+      if(xhr.readyState == 4) {
+        if(xhr.status == 200 && onComplete != null) {
+          onComplete(JSON.parse(xhr.responseText));
+        } else if(onError != null) {
+          onError(xhr.statusText);
+        }
+      } else if(onError != null) {
+        onError(xhr.statusText || "");
+      }
     };
     xhr.send(postPars);
 }
 
-export function jsonpRequest(address, params, onComplete) {
+export function jsonpRequest(address, params, onComplete, onError) {
   let parsStr = stringifyParams(params);
   let url = address + (parsStr ? '?' + parsStr : '');
   jsonp(url, {}, (err, data) => {
     if(err) {
       console && console.log("Jsonp error:") && console.log(err);
+      if(onError != null) onError(err);
     } else if(onComplete != null) {
       onComplete(data);
     }
