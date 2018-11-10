@@ -20,15 +20,15 @@
                 </Cell>
             </Group>
 
-            <Group title="Где сдавать?">
+            <Group title="Город сдачи">
                 <List>
                     <Cell expandable
                         @click="CitySelectionOpen"
                         :indicator="osname !== 'ios' ? 'Выбрать' : ''"
-                        :description="DSProfile.cityRegion"
+                        :description="ProfileCityRegion"
                     >
                         <!-- <vkui-icon :size="24" name="place" slot="before" /> -->
-                        {{DSProfile.cityTitle || 'Не выбран'}}
+                        {{ProfileCityTitle || 'Не выбран'}}
                     </Cell>
                 </List>
             </Group>
@@ -47,9 +47,9 @@
                 <Div><pre>
                     {{DSProfile}}
                 </pre></Div>
-                <Div><pre>
+                <!-- <Div><pre>
                     {{debugData}}
-                </pre></Div>
+                </pre></Div> -->
             </Group>
         </Panel>
 
@@ -79,7 +79,7 @@
                         @focus="CitySelectionOpen('ProfileEdit')"
                     /> -->
 
-                    <List>
+                    <!-- <List>
                         <Cell expandable
                             @click="CitySelectionOpen"
                             :description="ProfileCityRegion"
@@ -88,12 +88,18 @@
                             <vkui-icon :size="24" name="place" slot="before" />
                             {{ProfileCityTitle || 'Не выбран'}}
                         </Cell>
-                    </List>
+                    </List> -->
 
                     <div class="saveBtnContainer">
                         <Button @click="DSProfileSave">Сохранить</Button>
-                        <span class="savedNotification" :class="{shown: DSProfile._saved}">
-                            изменения сохранены
+                        
+                        <span class="savedNotification"
+                            :class="{
+                                shown: DSProfile._saved !== false,
+                                error: ProfileSavedError,
+                                success: ProfileSavedSuccess
+                            }">
+                            {{ProfileSavedText}}
                         </span>
                     </div>
                 </FormLayout>
@@ -125,17 +131,24 @@
                 />
             </template>
 
-            <List v-if="CitySelection.list.length">
-                <Cell v-for="(item, index) in CitySelection.list"
-                    :key="index"
-                    :description="item.region"
-                    @click="CitySelectionChoose(item)"
-                >
-                    {{item.name}}
-                </Cell>
-            </List>
+            <template v-if="(CitySelection.list.length || !CitySelection.ready) && !CitySelection.empty">
+                <List>
+                    <Cell v-for="(item, index) in CitySelection.list"
+                        :key="index"
+                        :description="item.region && item.region.title"
+                        @click="CitySelectionChoose(item)"
+                    >
+                        {{item.title}}
+                    </Cell>
+                </List>
 
-            <Footer v-else>Нет доступных городов</Footer>
+                <Spinner style="min-height: 62px" v-if="!CitySelection.ready" />
+            </template>
+
+            <Footer v-else>
+                <template v-if="CitySelection.empty">Начните вводить город</template>
+                <template v-else>Нет доступных городов</template>
+            </Footer>
         </Panel>
     </VKView>
 </template>
@@ -158,13 +171,34 @@ import { VK_ACCESS_TOKEN, VK_APP_ID } from '../tokens.js'
 export default {
     name: 'UserProfile',
     props: {},
+    watch: {
+        DSProfile(val) {
+            // debugger;
+        }
+    },
     computed: {
+        ProfileSavedError() {
+            return this.DSProfile._saved == 'error'
+        },
+        ProfileSavedSuccess() {
+            return this.DSProfile._saved == 'ok'
+        },
+        ProfileSavedText() {
+            return this.DSProfile._saved == 'ok'
+            ? 'изменения сохранены'
+            : 'не удалось сохранить'
+        },
+
+
         //
         ProfileCityTitle() {
-            return this.DSProfile.city && this.DSProfile.city.name;
+            return this.DSProfile.city
+                && this.DSProfile.city.title;
         },
         ProfileCityRegion() {
-            return this.DSProfile.city && this.DSProfile.city.region;
+            return this.DSProfile.city
+                && this.DSProfile.city.region
+                && this.DSProfile.city.region.title;
         },
 
         // Наименование выбранного города пользователя
@@ -230,26 +264,11 @@ export default {
             DSProfile: {},
             VKProfile: {},
 
-            // Временный массив с городами. Заменится на запросы к API
-            cities: [
-                {
-                    id: 1,
-                    name: 'Санкт-Петербург',
-                    region: 'Ленинградская область'
-                }, {
-                    id: 2,
-                    name: 'Москва',
-                    region: 'Московская область'
-                }, {
-                    id: 3,
-                    name: 'Казань',
-                    region: 'Казанская область'
-                }
-            ],
-
             // Объекта панели выбора города
             CitySelection: {
                 search: '',
+                empty: false,
+                ready: true,
                 list: []
             },
 
@@ -290,55 +309,53 @@ export default {
             VKC.auth(Number(VK_APP_ID), 'email,friends', (data) => {
                 Debug.log({'response': data})
 
-                self.VKProfileGet();
-                self.DSProfileGet();
+                self.VKProfileGet(() => {
+                    self.DSProfileGet();
+                });
             }, (error) => {
                 Debug.log({'error': error})
             })
         });
     },
     methods: {
-        // Авторизация VKontakte
-            VKAuth(callback = () => {}) {
-                VKC.init(VK_ACCESS_TOKEN, () => {
-                    VKC.auth(VK_APP_ID, 'email,friends', () => {
-                        callback()
-                    });
-                });
-            },
-
         // Профиль VKontakte
-            VKProfileGet() {
+            VKProfileGet(callback = () => {}) {
                 VKC.quickApi('users.get', {
                     fields: 'sex,bdate,photo_100,city,country'
                 }, (data) => {
                     Debug.log({'users.get': data})
+
                     if (data.data.response && data.data.response.length) {
                         this.VKProfile = data.data.response[0]
-                        this.VKProfile.id = 5000
 
                         this.DSProfileSet({
                             'first_name':   this.VKProfile.first_name,
                             'last_name':    this.VKProfile.last_name,
-                            'bdate':        this.VKProfile.bdate,
+                            'bdate':        null, // this.VKProfile.bdate,
                             'avatar':       this.VKProfile.photo_100,
-                            'vkId':         this.VKProfile.id,
+                            'vk_id':        this.VKProfile.id,
                             'city': {
                                 id:         this.VKProfile.city.id,
-                                name:       this.VKProfile.city.title,
-                                region:     this.VKProfile.country.title
+                                title:      this.VKProfile.city.title,
+                                region: {
+                                    id: null,
+                                    title:  this.VKProfile.country.title
+                                }
                             }
                         });
                     }
+
+                    callback();
                 });
             },
 
         // Профиль DonorSearch
             DSProfileGet() {
-                this.VKProfile.id = 5000;
+                if (!this.DSProfile.vk_id) return;
 
-                dsApi.send('users/' + this.VKProfile.id, {}, (data) => {
+                dsApi.send('users/' + this.DSProfile.vk_id, {}, (data) => {
                     Debug.log({'users/response': data})
+
                     for(let key in data) {
                         if (!data[key]) delete data[key];
                     }
@@ -347,6 +364,7 @@ export default {
                     }));
                 }, (error) => {
                     Debug.log({'users/error': error})
+
                     this.DSProfileSet({
                         _ready: true
                     });
@@ -354,6 +372,7 @@ export default {
             },
             DSProfileSet(data) {
                 Debug.log({'DSProfileSet': data})
+
                 for(let key in data) {
                     if (!this.DSProfile[key] && data[key]) {
                         this.DSProfile[key] = data[key];
@@ -361,27 +380,34 @@ export default {
                 }
                 this.DSProfile = Object.assign({}, this.DSProfile);
             },
-            DSProfileSave() {
+            DSProfileSave(data) {
                 let self = this;
 
-                self.DSProfile = { _saved: true };
-
-                setTimeout(function() {
-                    self.DSProfile = { _saved: false };
-                }, 1500);
-
-                return;
-
-                if (!this.VKProfile.id) {
-                    console && console.warn('invalid VKProfile.id');
+                if (!this.DSProfile.vk_id) {
+                    Debug.log('invalid DSProfile.vk_id');
                     return;
                 }
 
-                this.DSProfile.vkId = this.VKProfile.id;
+                if (typeof data !== 'object') data = this.DSProfile;
 
-                dsApi.send('users/' + this.VKProfile.id, this.DSProfile, (data) => {
-                    console.log(data)
-                }, 'POST')
+                dsApi.send('users', this.DSProfile, (data) => {
+                    Debug.log(data)
+
+                    if ('error' in data) {
+                        self.DSProfile._saved = 'error';
+                    }
+                    if (data.isSuccess) {
+                        self.DSProfile._saved = 'ok';
+                    }
+                    self.DSProfile = Object.assign({}, self.DSProfile)
+
+                    setTimeout(function() {
+                        self.DSProfile._saved = false;
+                        self.DSProfile = Object.assign({}, self.DSProfile)
+                    }, 1000);
+                }, (error) => {
+                    Debug.log({'users/update - error': error})
+                }, 'POST');
             },
 
         // Редактирование данных профиля
@@ -394,11 +420,6 @@ export default {
 
                 this.activePanel = 'Profile';
             },
-            ProfileEditSave() {
-
-                this.DSProfileSave();
-                this.activePanel = 'Profile';
-            },
 
         // Выбор города
             CitySelectionOpen(redirect) {
@@ -406,6 +427,7 @@ export default {
                 this.CitySelectionRedirect = redirect
                 this.CitySelection.search = this.UserProfileCityTitle
                 this.activePanel = 'CitySelection'
+                this.CitySelectionChange(this.CitySelection.search)
             },
             CitySelectionClose() {
 
@@ -413,25 +435,37 @@ export default {
             },
             CitySelectionChange: _.debounce(
                 function(e) {
-                    dsApi.send('Cities/' + e, {}, (data) => {
-                        console.log(data)
-                    })
+                    let self = this;
 
-                    if (!e.length) {
-                        this.CitySelection.list = [];
-                        this.CitySelection.search = '';
-                        return;
+                    if (e.length) {
+                        self.CitySelection.empty = false;
+                        self.CitySelection.ready = false;
+
+                        dsApi.send('Cities/' + e, {}, (data) => {
+                            // Debug.log({['Cities/' + e]: data});
+
+                            self.CitySelection.ready = true;
+                            self.CitySelection.list = data
+                        });
+                    } else {
+                        self.CitySelection.ready = true;
+                        self.CitySelection.empty = true;
                     }
 
                     this.CitySelection.search = e
-                    this.CitySelection.list.push(this.cities[Math.floor(Math.random()*this.cities.length)]);
-                }, 200
+                }, 300
             ),
             CitySelectionChoose(city) {
+                // debugger;
+
                 this.DSProfile.city = city;
                 this.CitySelection.search = '';
                 this.CitySelection.list = [];
                 this.activePanel = 'Profile';
+
+                this.DSProfileSave({
+                    city: this.DSProfile.city
+                });
             }
     }
 }
