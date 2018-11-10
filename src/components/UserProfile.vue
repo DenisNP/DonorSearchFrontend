@@ -1,102 +1,102 @@
 <template>
-    <div class="UserProfile">
-        <VKView v-bind="$attrs" :activePanel="activePanel">
-            <Panel id="Profile">
-                <PanelHeader>Профиль DonorSearch</PanelHeader>
+    <VKView v-bind="$attrs" :activePanel="activePanel" class="UserProfile">
+        <Panel id="Profile">
+            <PanelHeader>Профиль DonorSearch</PanelHeader>
 
-                <Group v-if="DSProfile._ready">
-                    <Cell size="l"
-                        :description="UserProfileCityTitle"
-                    >
-                        <Button level="secondary" slot="bottomContent" @click="ProfileEditOpen">Редактировать</Button>
-                        {{UserProfileFullName}}
-                        <Avatar :src="VKProfile.photo_100" :size="80" slot="before" />
-                    </Cell>
-                </Group>
+            <Group v-if="DSProfile._ready">
+                <Cell size="l"
+                    :description="UserProfileCityTitle"
+                >
+                    <Button level="secondary" slot="bottomContent" @click="ProfileEditOpen">
+                        Редактировать
+                    </Button>
+                    {{UserProfileFullName}}
+                    <Avatar :src="VKProfile.photo_100" :size="80" slot="before" />
+                </Cell>
+            </Group>
 
-                <Group title="Где сдавать?">
-                    <List>
-                        <Cell expandable @click="CitySelectionOpen" indicator="Выбрать">
-                            <vkui-icon :size="24" name="place" slot="before" />
-                            {{UserProfileCityTitle || 'Не выбран'}}
-                        </Cell>
-                    </List>
-                </Group>
-
-                
-
-                <Group title="Когда сдавать?">
-                    <List>
-                        <Cell expandable @click="CitySelectionOpen" indicator="Выбрать">
-                            <vkui-icon :size="24" name="place" slot="before" />
-                            {{UserProfileCityTitle || 'Не выбран'}}
-                        </Cell>
-                    </List>
-                </Group>
-
-                <Group title="Что сдавать?">
-                    <List class="DonationTypes">
-                        <Cell v-for="(type, index) in DonationTypes" :key="index">
-                            <Avatar :src="type.icon" :size="28" slot="before" />
-                            {{type.title}}
-                            <VKSwitch slot="asideContent" />
-                        </Cell>
-                    </List>
-                </Group>
-
-                <Group title="Отладка">
-                    <Div><pre>
-                        {{DSProfile}}
-                    </pre></Div>
-                </Group>
-            </Panel>
-
-            <Panel id="ProfileEdit">
-                <PanelHeader>
-                    <HeaderButton slot="left" @click="ProfileEditClose">
-                        <template v-if="osname === 'IOS'">
-                            Отмена
-                        </template>
-                        <vkui-icon :size="24" name="cancel" v-else />
-
-                    </HeaderButton>
-                    Личные данные
-                </PanelHeader>
-
-                <Group>
-                    <FormLayout>
-                        <Input v-model="DSProfile.first_name" top="Имя" />
-                        <Input v-model="DSProfile.last_name" top="Фамилия" />
-                        <Input v-model="DSProfile.bdate" top="Дата рождения" type="date" />
-
-                        <Button @click="ProfileEditSave">Сохранить</Button>
-                    </FormLayout>
-                </Group>
-            </Panel>
-
-            <Panel id="CitySelection">
-                <PanelHeader no-shadow>
-                    <Search theme="header"
-                        :value="CitySelection.search"
-                        @close="CitySelectionClose"
-                        @input="CitySelectionChange"
-                    />
-                </PanelHeader>
-
-                <List v-if="CitySelection.list.length">
-                    <Cell v-for="(item, index) in CitySelection.list"
-                        :key="index"
-                        :description="item.region"
-                        @click="CitySelectionChoose(item)"
-                    >
-                        {{item.name}}
+            <Group title="Где сдавать?">
+                <List>
+                    <Cell expandable @click="CitySelectionOpen" indicator="Выбрать">
+                        <vkui-icon :size="24" name="place" slot="before" />
+                        {{UserProfileCityTitle || 'Не выбран'}}
                     </Cell>
                 </List>
+            </Group>
 
-                <Footer v-else>Нет доступных городов</Footer>
-            </Panel>
-        </VKView>
-    </div>
+            
+
+            <Group title="Когда сдавать?">
+                <List>
+                    <Cell expandable @click="CitySelectionOpen" indicator="Выбрать">
+                        <vkui-icon :size="24" name="place" slot="before" />
+                        {{UserProfileCityTitle || 'Не выбран'}}
+                    </Cell>
+                </List>
+            </Group>
+
+            <Group title="Что сдавать?">
+                <List class="DonationTypes">
+                    <Cell v-for="(type, index) in DonationTypes" :key="index">
+                        <Avatar :src="type.icon" :size="28" slot="before" />
+                        {{type.title}}
+                        <VKSwitch slot="asideContent" />
+                    </Cell>
+                </List>
+            </Group>
+
+            <Group title="Отладка">
+                <Div><pre>
+                    {{DSProfile}}
+                </pre></Div>
+            </Group>
+        </Panel>
+
+        <Panel id="ProfileEdit">
+            <PanelHeader>
+                <HeaderButton slot="left" @click="ProfileEditClose">
+                    <template v-if="osname === 'IOS'">
+                        Отмена
+                    </template>
+                    <vkui-icon :size="24" name="cancel" v-else />
+
+                </HeaderButton>
+                Личные данные
+            </PanelHeader>
+
+            <Group>
+                <FormLayout>
+                    <Input v-model="DSProfile.first_name" top="Имя" />
+                    <Input v-model="DSProfile.last_name" top="Фамилия" />
+                    <Input v-model="DSProfile.bdate" top="Дата рождения" type="date" />
+
+                    <Button @click="ProfileEditSave">Сохранить</Button>
+                </FormLayout>
+            </Group>
+        </Panel>
+
+        <Panel id="CitySelection">
+            <PanelHeader no-shadow>
+                <Search theme="header"
+                    :value="CitySelection.search"
+                    @close="CitySelectionClose"
+                    @input="CitySelectionChange"
+                />
+            </PanelHeader>
+
+            <List v-if="CitySelection.list.length">
+                <Cell v-for="(item, index) in CitySelection.list"
+                    :key="index"
+                    :description="item.region"
+                    @click="CitySelectionChoose(item)"
+                >
+                    {{item.name}}
+                </Cell>
+            </List>
+
+            <Footer v-else>Нет доступных городов</Footer>
+        </Panel>
+    </VKView>
 </template>
 
 <script>
@@ -232,96 +232,120 @@ export default {
     mounted() {
         this.VKAuth(() => {
             this.VKProfileGet()
+            this.DSProfileGet()
         })
-
-        this.DSProfileGet()
     },
     methods: {
-        VKAuth(callback = () => {}) {
-            VKC.init(VK_ACCESS_TOKEN, () => {
-                VKC.auth(VK_APP_ID, 'email,friends', () => {
-                    callback()
+        // Авторизация VKontakte
+            VKAuth(callback = () => {}) {
+                VKC.init(VK_ACCESS_TOKEN, () => {
+                    VKC.auth(VK_APP_ID, 'email,friends', () => {
+                        callback()
+                    });
                 });
-            });
-        },
-        VKProfileGet() {
-            VKC.quickApi('users.get', {
-                fields: 'sex,bdate,photo_100,city,country'
-            }, (data) => {
-                if (data.data.response && data.data.response.length) {
-                    this.VKProfile = data.data.response[0]
-                    this.VKProfile.id = 5000
+            },
+
+        // Профиль VKontakte
+            VKProfileGet() {
+                VKC.quickApi('users.get', {
+                    fields: 'sex,bdate,photo_100,city,country'
+                }, (data) => {
+                    if (data.data.response && data.data.response.length) {
+                        this.VKProfile = data.data.response[0]
+                        this.VKProfile.id = 5000
+
+                        this.DSProfileSet({
+                            'first_name':   this.VKProfile.first_name,
+                            'last_name':    this.VKProfile.last_name,
+                            'bdate':        this.VKProfile.bdate,
+                            'avatar':       this.VKProfile.photo_100,
+                            'cityId':       this.VKProfile.city.id,
+                            'vkId':         this.VKProfile.id
+                        });
+                    }
+                });
+            },
+
+        // Профиль DonorSearch
+            DSProfileGet() {
+                this.VKProfile.id = 5000;
+
+                dsApi.send('users/' + this.VKProfile.id, {}, (data) => {
+                    for(let key in data) {
+                        if (!data[key]) delete data[key];
+                    }
+                    this.DSProfileSet(Object.assign(data, {
+                        _ready: true
+                    }));
+                }, () => {
+                    this.DSProfileSet({
+                        _ready: true
+                    });
+                });
+            },
+            DSProfileSet(data) {
+                for(let key in data) {
+                    if (!this.DSProfile[key] && data[key]) {
+                        this.DSProfile[key] = data[key];
+                    }
                 }
-            });
-        },
-        DSProfileGet() {
-            this.VKProfile.id = 5000;
-
-            dsApi.send('users/' + this.VKProfile.id, {}, (data) => {
-                this.DSProfile = Object.assign(data, {
-                    _ready: true
-                });
-            }, () => {
-                this.DSProfile = Object.assign({}, {
-                    _ready: true
-                });
-            });
-        },
-        DSProfileSet() {
-            if (!this.VKProfile.id) {
-                console.warn('invalid VKProfile.id');
-                return;
-            }
-
-            this.DSProfile.vkId = this.VKProfile.id;
-
-            dsApi.send('users/' + this.VKProfile.id, this.DSProfile, (data) => {
-                console.log(data)
-            }, 'POST')
-        },
-
-        // Редактирование данных профиля
-        ProfileEditOpen() {
-
-            this.activePanel = 'ProfileEdit';
-        },
-        ProfileEditClose() {
-            
-            this.activePanel = 'Profile';
-        },
-        ProfileEditSave() {
-
-            this.DSProfileSet();
-            this.activePanel = 'Profile';
-        },
-
-        // Выбор города
-        CitySelectionOpen() {
-            this.CitySelection.search = this.UserProfileCityTitle
-            this.activePanel = 'CitySelection'
-        },
-        CitySelectionClose() {
-
-            this.activePanel = 'Profile'
-        },
-        CitySelectionChange: _.debounce(
-            function(e) {
-                if (!e.length) {
-                    this.CitySelection.list = [];
-                    this.CitySelection.search = '';
+                this.DSProfile = Object.assign({}, this.DSProfile);
+            },
+            DSProfileSave() {
+                if (!this.VKProfile.id) {
+                    console.warn('invalid VKProfile.id');
                     return;
                 }
 
-                this.CitySelection.search = e
-                this.CitySelection.list.push(this.cities[Math.floor(Math.random()*this.cities.length)]);
-            }, 200
-        ),
-        CitySelectionChoose(city) {
-            this.DSProfile.city = city;
-            this.CitySelection.search = '';
-            this.CitySelection.list = [];
-            this.activePanel = 'Profile';
-        }
+                this.DSProfile.vkId = this.VKProfile.id;
+
+                dsApi.send('users/' + this.VKProfile.id, this.DSProfile, (data) => {
+                    console.log(data)
+                }, 'POST')
+            },
+
+        // Редактирование данных профиля
+            ProfileEditOpen() {
+
+                this.activePanel = 'ProfileEdit';
+            },
+            ProfileEditClose() {
+                
+                this.activePanel = 'Profile';
+            },
+            ProfileEditSave() {
+
+                this.DSProfileSave();
+                this.activePanel = 'Profile';
+            },
+
+        // Выбор города
+            CitySelectionOpen() {
+                this.CitySelection.search = this.UserProfileCityTitle
+                this.activePanel = 'CitySelection'
+            },
+            CitySelectionClose() {
+
+                this.activePanel = 'Profile'
+            },
+            CitySelectionChange: _.debounce(
+                function(e) {
+                    if (!e.length) {
+                        this.CitySelection.list = [];
+                        this.CitySelection.search = '';
+                        return;
+                    }
+
+                    this.CitySelection.search = e
+                    this.CitySelection.list.push(this.cities[Math.floor(Math.random()*this.cities.length)]);
+                }, 200
+            ),
+            CitySelectionChoose(city) {
+                this.DSProfile.city = city;
+                this.CitySelection.search = '';
+                this.CitySelection.list = [];
+                this.activePanel = 'Profile';
+            }
     }
 }
 

@@ -41,7 +41,7 @@ function RouterPathSet(path) {
 		let panelFounded = false;
 		let childs = VKUIRouterRoot.$children;
 		for(let i = 0; i < childs.length; i++) {
-			if (childs[i].$el.classList.contains('View')) {
+			if (childs[i].$attrs.id === VKUIRouterPath.view) {
 				VKUIRouterPath.panel = childs[i].$children[0].activePanel
 				panelFounded = true;
 				i = childs.length;
