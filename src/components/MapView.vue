@@ -1,7 +1,11 @@
 <template>
   <VKView activePanel="defMap" v-bind="$attrs">
     <Panel id="defMap" theme="white">
-      <PanelHeader id="mapHeader">Карта</PanelHeader>
+      <PanelHeader id="mapHeader">Станции приёма
+        <HeaderButton slot="left" @click="setCenter" v-show="userLocation.lat">
+          <vkui-icon name="place" size="28" />
+        </HeaderButton>
+      </PanelHeader>
       <Mapbox v-if="mapInitialized"
         :style="mapHeight"
         :access-token=token
@@ -15,8 +19,43 @@
         @map-init="init"
         @map-load="loaded"
       ></Mapbox>
-      <BottomPopup :opened="popup.opened" collapsible @close="popup.opened = false">
-        Test test
+      <BottomPopup :opened="station != null" @close="station = null" :openedHeight="assumeHeight">
+        <Header level="2">
+            {{ station && station.title }}
+        </Header>
+        <Div class="shrinkedDiv" v-show="station && station.requrement_of_user_blood != 0">
+          <Cell>
+            <Avatar :size="28" slot="before" :src="station && station.requrement_of_user_blood == -2 ? activeIcon : normalIcon" />
+            {{ station && station.requrement_of_user_blood == -2 ? "Высокая потребность" : "Средняя потребность" }}
+            <Button slot="asideContent" level="primary">Записаться</Button>
+          </Cell>
+        </Div>
+        <Div class="myDiv" v-show="station && station.address">
+          <InfoRow>
+            <span slot="title">Адрес</span>
+            {{ station && station.address }}
+          </InfoRow>
+        </Div>
+        <Div class="myDiv" v-show="station && station.phones">
+          <InfoRow>
+            <span slot="title">Телефон</span>
+            {{ station && station.phones }}
+          </InfoRow>
+        </Div>
+        <Div>
+          <Cell v-show="station && station.accept_first_timers">
+              <Avatar :size="28" slot="before" >
+                <vkui-icon name="education" :size="24" :style="{color: '#27ae60'}"/>
+              </Avatar>
+              Можно первый раз
+          </Cell>
+          <Cell v-show="station && station.without_registration">
+            <Avatar :size="28" slot="before" >
+              <vkui-icon name="document" :size="24" :style="{color: '#27ae60'}"/>
+            </Avatar>
+              Можно без прописки
+          </Cell>
+        </Div>
       </BottomPopup>
     </Panel>
   </VKView>
@@ -26,10 +65,13 @@
 
 import { MAPBOX_TOKEN } from '../tokens.js'
 
-import { VKView, Panel, PanelHeader } from '@denull/vkui/src/components'
+import VKC from '../VK/VKC'
+import DSApi from '../DSApi'
+import { VKView, Panel, PanelHeader, HeaderButton, Header, Button, InfoRow, Cell, Div } from '@denull/vkui/src/components'
 let MapboxLanguage = require('@mapbox/mapbox-gl-language');
 import Mapbox from 'mapbox-gl-vue'
 import BottomPopup from './BottomPopup'
+import EventBus from '../EventBus'
 
 export default {
   name: 'MapView',
@@ -47,17 +89,17 @@ export default {
       zoom: 12,
       mapHeight: "",
       markers: [
-        {"coordinates":[30.315, 59.939],"classes":["marker", "station-active"]},
-        {"coordinates":[30.324, 59.928],"classes":["marker", "station-active"]},
-        {"coordinates":[30.334, 59.918],"classes":["marker", "station-normal"]},
-        {"coordinates":[30.314, 59.908],"classes":["marker", "station-normal"]},
-        {"coordinates":[30.325, 59.940],"classes":["marker", "station-disabled"]},
-        {"coordinates":[30.304, 59.920],"classes":["marker", "station-disabled"]}
+
       ],
       mapMarkers: [],
-      popup: {
-        opened: false
-      }
+      userLocation: {
+        lng: "",
+        lat: ""
+      },
+      lastStationsGot: 0,
+      station: null,
+      activeIcon: "https://developer.donorsearch.org/dropplet.svg",
+      normalIcon: "https://developer.donorsearch.org/design_elements/dropplets/full_blood.svg"
     }
   },
   computed: {
@@ -68,6 +110,11 @@ export default {
     let tabbar = document.getElementsByClassName('Tabbar')[0].offsetHeight;
     let height = vue_header - (-tabbar);
     this.mapHeight = 'height: calc(100vh - ' + height + 'px);';
+
+    let self = this;
+    EventBus.$on('map-opened', function() {
+      self.loadStations();
+    });
   },
   methods: {
     init(map) {
@@ -136,7 +183,68 @@ export default {
     },
 
     stationClicked(data) {
-      console && console.log(data);
+      this.station = data;
+      this.center = [this.station.coordinates[0], this.station.coordinates[1] - 0.03 * (5000 / Math.pow(this.map.getZoom()*1.0, 4.0))];
+    },
+
+    setCenter() {
+      this.center = [this.userLocation.lng, this.userLocation.lat];
+    },
+
+    loadStations(force) {
+      if(force || this.lastStationsGot > 0) {
+        let self = this;
+        let diff = Date.now - this.lastStationsGot;
+        if(diff > 3600000 || force) {
+          this.lastStationsGot = Date.now;
+
+          DSApi.send('Stations/' + '463377', {}, (data) => {
+            self.markers = [];
+
+            data.forEach((s) => {
+              let sData = {
+                coordinates: [s.lng, s.lat],
+                classes: [
+                  "marker",
+                  s.requrement_of_user_blood == -2
+                  ? 'station-active'
+                  : (s.requrement_of_user_blood == -1
+                    ? 'station-normal'
+                    : 'station-disabled')
+                  ],
+                title: s.title || s.address,
+                address: s.address || '',
+                id: s.id,
+                without_registration: s.without_registration,
+                accept_first_timers: s.accept_first_timers,
+                phones: s.phones || ''
+              };
+
+              self.markers.push(sData);
+            });
+          });
+        }
+      }
+    }
+  },
+  computed: {
+
+    assumeHeight() {
+      let s = this.station;
+      if(!s) return 200;
+      let tHeight = s.title.length / (155.0/4.0) * 20.0 + 29.0;
+      if(s.address)
+        tHeight -= -68;
+      if(s.phones)
+        tHeight -= -50;
+      if(s.without_registration)
+        tHeight -= -50;
+      if(s.accept_first_timers)
+        tHeight -= -50;
+      if(s.requrement_of_user_blood != 0)
+        tHeight -= -50;
+
+      return tHeight - (-50);
     }
   },
   watch: {
@@ -145,6 +253,23 @@ export default {
         this.updateMarkers(val);
       },
       deep: true
+    },
+    mapInitialized(val) {
+      if(val) {
+        let self = this;
+
+        VKC.send('VKWebAppGetGeodata', {});
+        EventBus.$on('VKWebAppGeodataResult', function(geo) {
+          self.userLocation.lat = geo.lat;
+          self.userLocation.lng = geo.long;
+
+          self.center = [geo.long, geo.lat];
+          self.loadStations(true);
+        });
+      }
+    },
+    center(val) {
+      this.map.flyTo({center: val});
     }
   },
   components: {
@@ -152,7 +277,13 @@ export default {
     Panel,
     PanelHeader,
     Mapbox,
-    BottomPopup
+    BottomPopup,
+    HeaderButton,
+    Header,
+    Button,
+    InfoRow,
+    Cell,
+    Div
   }
 }
 
@@ -197,7 +328,6 @@ export default {
   background-repeat: no-repeat;
   background-size: 70px;
   background-position: 0 0;
-  z-index: 5;
 }
 
 .station-disabled {
@@ -206,7 +336,21 @@ export default {
   background-size: 60px;
   background-position: 0 0;
   width: 60px!important;
-  /*opacity: 0.7;*/
+}
+
+</style>
+
+<style scoped>
+
+.Div.myDiv {
+  padding-top: 6px!important;
+  padding-bottom: 6px!important;
+}
+
+.Div.shrinkedDiv {
+  padding-top: 0!important;
+  padding-bottom: 0!important;
+  margin-top: -3px!important;
 }
 
 </style>

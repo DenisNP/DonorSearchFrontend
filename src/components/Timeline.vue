@@ -1,7 +1,7 @@
 <template>
   <VKView activePanel="defTimeline" v-bind="$attrs">
     <Panel id="defTimeline" theme="white">
-      <PanelHeader>Таймлайн</PanelHeader>
+      <PanelHeader>Моя события</PanelHeader>
 
     </Panel>
   </VKView>

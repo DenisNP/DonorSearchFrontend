@@ -25,7 +25,10 @@ export default {
   name: 'BottomPopup',
   props: {
     opened: Boolean,
-    collapsible: Boolean,
+    collapsible: {
+      type: Boolean,
+      default: false
+    },
     outsideClickEnabled: Boolean,
     collapsedHeight: Number,
     openedHeight: Number,
@@ -85,11 +88,18 @@ export default {
             this.collapsed = this.collapsedOnStart;
           }
         } else {
-          if(t > 0.5 * diff && t < diff - (-this.colHeight * 0.3)) {
-            this.collapsed = true;
-          } else if(t > this.openHeight * 0.45) {
-            this.$emit('close');
-            this.collapsed = this.collapsedOnStart;
+          if(this.collapsible) {
+            if(t > 0.5 * diff && t < diff - (-this.colHeight * 0.3)) {
+              this.collapsed = this.collapsible;
+            } else if(t > this.openHeight * 0.45) {
+              this.$emit('close');
+              this.collapsed = this.collapsedOnStart;
+            }
+          }else{
+            if(t > this.openHeight * 0.45) {
+              this.$emit('close');
+              this.collapsed = this.collapsedOnStart;
+            }
           }
         }
       }
@@ -123,7 +133,6 @@ export default {
 
 .BottomPopupContainer {
   background-color: #FFF;
-  text-align: center;
   box-shadow: 0 0 10px 0 rgba(0,0,0,.1);
   box-sizing: border-box;
   overflow: hidden;
@@ -166,11 +175,11 @@ export default {
 }
 .BottomPopup.collapsed {
   bottom: calc(var(--collapsed-height) - 100vh)!important;
-  z-index: 2;
+  z-index: 20;
 }
 .BottomPopup.opened {
   bottom: calc(var(--opened-height) - 100vh);
-  z-index: 2;
+  z-index: 20;
 }
 
 </style>

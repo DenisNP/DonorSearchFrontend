@@ -56,6 +56,7 @@ export default {
           if(!this.mapInitialized){
             this.mapInitialized = true;
           }
+          EventBus.$emit('map-opened');
         }
       }
     },
