@@ -14,7 +14,6 @@
 
         @map-init="init"
         @map-load="loaded"
-        @map-click="mapClick"
       ></Mapbox>
       <BottomPopup :opened="popup.opened" collapsible @close="popup.opened = false">
         Test test
@@ -48,34 +47,14 @@ export default {
       zoom: 12,
       mapHeight: "",
       markers: [],
+      mapMarkers: [],
       popup: {
         opened: false
       }
     }
   },
   computed: {
-    features() {
-      let _features = []
 
-      this.markers.map((m) => {
-        _features.push({
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: [
-              m.coordinates.x,
-              m.coordinates.y
-            ]
-          },
-          properties: m.data
-        })
-      });
-
-      return {
-        'type': 'FeatureCollection',
-        'features': _features
-      };
-    }
   },
   mounted() {
     let vue_header = document.getElementsByClassName('View__header')[0].offsetHeight;
@@ -92,17 +71,17 @@ export default {
     },
 
     loaded(map) {
-      map.addSource(
+      /*map.addSource(
         'blood_banks',
         {
           'type': 'geojson',
           'data': this.features
         }
-      );
-      map.addLayer({
+      );*/
+      /*map.addLayer({
         'id': 'blood_banks',
         'type': 'symbol',
-        'source': 'blood_banks',
+        //'source': 'blood_banks',
         'layout': {
           'icon-image': '{icon}-15',
           'text-field': '{title}',
@@ -110,22 +89,42 @@ export default {
           'text-offset': [0, 0.6],
           'text-anchor': 'top'
         }
-      });
+      });*/
 
-      map.on('mouseenter', 'blood_banks', function () {
+      /*map.on('mouseenter', 'blood_banks', function () {
         map.getCanvas().style.cursor = 'pointer';
       });
 
       map.on('mouseleave', 'blood_banks', function () {
         map.getCanvas().style.cursor = '';
+      });*/
+      this.updateMarkers(this.markers);
+    },
+
+    updateMarkers(_markers) {
+      this.mapMarkers.forEach((mm) => {
+          mm && mm.remove && mm.remove();
       });
-    },
+      this.mapMarkers = [];
 
-    updateFeatures() {
+      for(let idx in _markers) {
+        let mData = _markers[idx];
+        let el = document.createElement('div');
+        if(mData.classes) {
+          el.className = mData.classes.join(" ");
+        }
+        let m = new window.mapboxgl.Marker(el)
+          .setLngLat(mData.coordinates)
+          .addTo(this.map);
+
+        this.mapMarkers.push(m);
+      }
+    }
+    /*updateFeatures() {
       this.map.getSource('blood_banks').setData(this.features);
-    },
+    },*/
 
-    mapClick(map, e) {
+    /*mapClick(map, e) {
 
       this.popup.opened = true;
 
@@ -138,12 +137,12 @@ export default {
 
       const feature = clickedFeatures[0];
       console && console.log(feature.properties);
-    }
+    }*/
   },
   watch: {
-    features: {
-      handler() {
-        this.updateFeatures();
+    markers: {
+      handler(val) {
+        this.updateMarkers(val);
       },
       deep: true
     }

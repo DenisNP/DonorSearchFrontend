@@ -23,6 +23,7 @@ export function httpRequest(address, params, onComplete, onError, method = 'GET'
         onError(xhr.statusText || "");
       }
     };
+
     xhr.send(postPars);
 }
 

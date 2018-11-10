@@ -12,7 +12,7 @@
 import { VKView, Panel, PanelHeader } from '@denull/vkui/src/components'
 
 export default {
-  name: 'MapView',
+  name: 'Timeline',
   props: {
 
   },
