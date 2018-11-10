@@ -26,7 +26,7 @@
         <Div class="shrinkedDiv" v-show="station && station.requrement_of_user_blood != 0">
           <Cell>
             <Avatar :size="28" slot="before" :src="station && station.requrement_of_user_blood == -2 ? activeIcon : normalIcon" />
-            {{ station && station.requrement_of_user_blood == -2 ? "Высокая потребность" : "Средняя потребность" }}
+            {{ bloodRequirement }}
             <Button slot="asideContent" level="primary">Записаться</Button>
           </Cell>
         </Div>
@@ -72,6 +72,7 @@ let MapboxLanguage = require('@mapbox/mapbox-gl-language');
 import Mapbox from 'mapbox-gl-vue'
 import BottomPopup from './BottomPopup'
 import EventBus from '../EventBus'
+import DSProfile from '../DSProfile'
 
 export default {
   name: 'MapView',
@@ -122,33 +123,6 @@ export default {
     },
 
     loaded(map) {
-      /*map.addSource(
-        'blood_banks',
-        {
-          'type': 'geojson',
-          'data': this.features
-        }
-      );*/
-      /*map.addLayer({
-        'id': 'blood_banks',
-        'type': 'symbol',
-        //'source': 'blood_banks',
-        'layout': {
-          'icon-image': '{icon}-15',
-          'text-field': '{title}',
-          'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
-          'text-offset': [0, 0.6],
-          'text-anchor': 'top'
-        }
-      });*/
-
-      /*map.on('mouseenter', 'blood_banks', function () {
-        map.getCanvas().style.cursor = 'pointer';
-      });
-
-      map.on('mouseleave', 'blood_banks', function () {
-        map.getCanvas().style.cursor = '';
-      });*/
       this.updateMarkers(this.markers);
     },
 
@@ -242,6 +216,16 @@ export default {
         tHeight -= -50;
 
       return tHeight - (-50);
+    },
+
+    bloodRequirement() {
+      if(!this.station || this.station.requrement_of_user_blood == 0) return "";
+      let bType = DSProfile.data.blood_type || "";
+      if(bType) {
+        return this.station.requrement_of_user_blood == -2 ? "Дефицит " + bType : "Потребность в " + bType;
+      } else {
+        return this.station.requrement_of_user_blood == -2 ? "Дефицит" : "Есть потребность";
+      }
     }
   },
   watch: {
