@@ -287,15 +287,13 @@ export default {
         EventBus.$on('VKCInit', () => {
             let self = this;
 
-            Debug.log('VKCInit')
-
-            VKC.auth(VK_APP_ID, 'email,friends', (data) => {
+            VKC.auth(Number(VK_APP_ID), 'email,friends', (data) => {
                 Debug.log({'response': data})
 
                 self.VKProfileGet();
                 self.DSProfileGet();
             }, (error) => {
-                Debug.log({'error': data})
+                Debug.log({'error': error})
             })
         });
     },
@@ -347,8 +345,8 @@ export default {
                     this.DSProfileSet(Object.assign(data, {
                         _ready: true
                     }));
-                }, () => {
-                    Debug.log({'users/error': data})
+                }, (error) => {
+                    Debug.log({'users/error': error})
                     this.DSProfileSet({
                         _ready: true
                     });
@@ -393,7 +391,7 @@ export default {
                 this.activePanel = 'ProfileEdit';
             },
             ProfileEditClose() {
-                
+
                 this.activePanel = 'Profile';
             },
             ProfileEditSave() {

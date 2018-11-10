@@ -20,8 +20,6 @@ let access_token = "";
 let api_requests = {};
 let auth_callbacks = {};
 
-Debug.log(123);
-
 export default {
   init: (arg1, arg2) => {
     let callback;
@@ -45,8 +43,8 @@ export default {
         returnData(e.detail);
       });
 
-      connect.send('VKWebAppInit', {});
       client_type = CLIENT_VK_APPS;
+      send('VKWebAppInit', {});
       callback();
 
     } else {
@@ -107,19 +105,20 @@ export default {
 }
 
 function send(handler, params) {
-  console &&
-  console.log(client_type + " send: " + handler, params);
+  Debug.log([client_type + " send: " + handler, params]);
 
   if(!params) params = {};
 
   if (client_type == CLIENT_VK_APPS) {
-    if(!params['params']) params['params'] = {};
     if(
         handler == 'VKWebAppCallAPIMethod'
         && access_token
-        && !params['params']['access_token']
-      )
+        && (params['params'] && !params['params']['access_token'])
+      ) {
+      if(!params['params']) params['params'] = {};
       params['params']['access_token'] = access_token;
+      if(!params['params']['v']) params['params']['v'] = '5.87';
+    }
 
     connect.send(handler, params);
   } else if (client_type == CLIENT_VK_IFRAME) {
@@ -159,9 +158,9 @@ function returnData(data) {
   if(!data.data) return;
 
   if(data.data.error_type) {
-    console && console.log(client_type + " error: ", data);
+    Debug.log([client_type + " error: ", data]);
   }else{
-    console && console.log(client_type + " event: ", data);
+    Debug.log([client_type + " event: ", data]);
   }
 
   if(data.type == 'VKWebAppCallAPIMethodResult' || data.type == 'VKWebAppCallAPIMethodFailed') {
