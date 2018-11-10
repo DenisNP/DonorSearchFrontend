@@ -3,7 +3,7 @@ let VKUIRouterRoot = null;
 let VKUIRouterPath = {};
 
 function RouterPathGet() {
-	let currentPath = VKUIRouterRoot.$router.currentRoute.fullPath.split('/');
+	let currentPath = VKUIRouterRoot.$router.currentRoute.path.split('/');
 	currentPath = currentPath[1].split('-');
 
 	return VKUIRouterPath = RouterPathValidate({
