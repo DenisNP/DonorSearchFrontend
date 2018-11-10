@@ -27,7 +27,7 @@
           <Cell>
             <Avatar :size="28" slot="before" :src="station && station.requrement_of_user_blood == -2 ? activeIcon : normalIcon" />
             {{ bloodRequirement }}
-            <Button slot="asideContent" level="primary">Записаться</Button>
+            <Button slot="asideContent" level="primary" v-show="userCanStartTimeline">Записаться</Button>
           </Cell>
         </Div>
         <Div class="myDiv" v-show="station && station.address">
@@ -100,7 +100,8 @@ export default {
       lastStationsGot: 0,
       station: null,
       activeIcon: "https://developer.donorsearch.org/dropplet.svg",
-      normalIcon: "https://developer.donorsearch.org/design_elements/dropplets/full_blood.svg"
+      normalIcon: "https://developer.donorsearch.org/design_elements/dropplets/full_blood.svg",
+      timeline: DSProfile.timeline
     }
   },
   mounted() {
@@ -226,6 +227,19 @@ export default {
       } else {
         return this.station.requrement_of_user_blood == -2 ? "Дефицит" : "Есть потребность";
       }
+    },
+
+    userCanStartTimeline() {
+      if(this.timeline.donation_date
+        || !this.timeline.appointment_date_from
+        || !this.timeline.appointment_date_to)
+       return false;
+
+      let dFrom = new Date(this.timeline.appointment_date_from);
+      let dTo = new Date(this.timeline.appointment_date_to);
+      let dn = Date.now();
+      let diff = dFrom - now;
+      return dTo >= now && diff <= 3600000*24*7;
     }
   },
   watch: {

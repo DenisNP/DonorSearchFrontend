@@ -5,28 +5,48 @@ import DSApi from './DSApi'
 
 export default {
 	data: {
-		avatar: 			null,
-		vk_id: 				null,
+		avatar: 					null,
+		vk_id: 						null,
 		second_name:  		null,
-		maiden_name: 		null,
-		bdate: 				null,
-		gender: 			null,
-		city_id: 			null,
-		city_title: 		null,
+		maiden_name: 			null,
+		bdate: 						null,
+		gender: 					null,
+		city_id: 					null,
+		city_title: 			null,
 		region_title: 		null,
-		about_self: 		null,
-		blood_type: 		null,
+		about_self: 			null,
+		blood_type: 			null,
 		blood_class_ids: 	null,
-		bone_marrow: 		null,
-		cant_to_be_donor: 	null,
+		bone_marrow: 			null,
+		cant_to_be_donor: null,
 		donor_pause_to: 	null,
-		has_registration: 	null,
-		first_name: 		null,
-		last_name: 			null
+		has_registration: null,
+		first_name: 			null,
+		last_name: 				null
 	},
 
 	timeline: {
-		
+		"id": 0,
+		"ds_Id": null,
+		"vk_id": 0,
+		"previous_date_donation": null,
+		"appointment_date_from": null,
+		"appointment_date_to": null,
+		"donation_date": null,
+		"donation_success": null,
+		"blood_class_ids": 0,
+		"img": null,
+		"station_id": null,
+		"recomendation_timestamp": null,
+		"finished": false,
+		"confirm_visit": {
+			"id": 0,
+			"date_from": null,
+			"date_to": null,
+			"visit_date": null,
+			"success": null,
+			"without_donation": null
+		}
 	},
 
 	_loaded: false,
