@@ -4,6 +4,8 @@ import handlers from './handlers';
 import { makeId } from '../globals';
 import { VK_APP_ID } from '../tokens';
 
+import Debug from '../Debug'
+
 export const CLIENT_VK_APPS = "VKAPPS";
 export const CLIENT_VK_IFRAME = "VKIFRAME";
 export const CLIENT_SITE = "SITE";

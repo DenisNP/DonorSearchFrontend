@@ -142,6 +142,7 @@
 
 <script>
 
+import Debug from '../Debug'
 import EventBus from '../EventBus'
 
 import '@denull/vkui'
