@@ -104,8 +104,6 @@
 import '@denull/vkui'
 import { platform, IOS, ANDROID } from '@denull/vkui'
 
-import GlobalProfile from '../GlobalProfile.js'
-
 import _ from 'lodash'
 
 import dsApi from '../DSApi'
@@ -168,8 +166,6 @@ export default {
     },
     data() {
         return {
-            GlobalProfile,
-
             // VKUI osname
             osname: platform(),
 
