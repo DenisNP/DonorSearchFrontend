@@ -6,10 +6,20 @@
             </PanelHeader>
 
             <Group>
-                <template v-if="!DSProfile._ready">
+                <Div><pre>
+                    {{globalProfile}}
+                </pre></Div>
+
+                <Div><pre>
+                    {{DSProfile}}
+                </pre></Div>
+            </Group>
+
+            <Group>
+                <template v-if="!DSProfileReady">
                     <Spinner class="ProfileLoadingSpinner" />
                 </template>
-                <Cell class="UserProfileBlock" size="l" :class="{shown: DSProfile._ready}"
+                <Cell class="UserProfileBlock" size="l" :class="{shown: DSProfileReady}"
                     :description="UserProfileCityTitle"
                 >
                     <Button level="secondary" slot="bottomContent" @click="ProfileEditOpen">
@@ -155,6 +165,8 @@
 
 <script>
 
+import DSProfile from '../DSProfile'
+
 import Debug from '../Debug'
 import EventBus from '../EventBus'
 
@@ -189,25 +201,17 @@ export default {
             : 'не удалось сохранить'
         },
 
+        DSProfileReady() {
+            return DSProfile._loaded;
+        },
+
 
         //
         ProfileCityTitle() {
-            return this.DSProfile.city
-                && this.DSProfile.city.title;
+            return DSProfile.get('city_title');
         },
         ProfileCityRegion() {
-            return this.DSProfile.city
-                && this.DSProfile.city.region
-                && this.DSProfile.city.region.title;
-        },
-
-        // Наименование выбранного города пользователя
-        selectedCityName() {
-            if (this.profile && this.profile.city && this.profile.city.name) {
-                return this.profile.city.name;
-            }
-
-            return 'Город не выбран';
+            return DSProfile.get('region_title');
         },
 
         // Приоритетные данных между DonorSearch и VKontakte
@@ -251,8 +255,15 @@ export default {
             return avatar;
         }
     },
+    watch: {
+        globalProfile(val) {
+            this.DSProfile = Object.assign(this.DSProfile, val)
+        }
+    },
     data() {
         return {
+            globalProfile: DSProfile,
+
             // VKUI osname
             osname: platform(),
             debugData: Debug.get(),
@@ -261,7 +272,7 @@ export default {
             activePanel: 'Profile',
 
             // Данные от DonorSearch и от VKontakte
-            DSProfile: {},
+            DSProfile: DSProfile.get(),
             VKProfile: {},
 
             // Объекта панели выбора города
@@ -310,7 +321,19 @@ export default {
                 Debug.log({'response': data})
 
                 self.VKProfileGet(() => {
-                    self.DSProfileGet();
+                    DSProfile.load(self.VKProfile.id, (data) => {
+                        data = DSProfile.setVK(self.VKProfile)
+
+                        Debug.log({'users/get/success': data});
+
+                        self.DSProfile = DSProfile.get();
+                        self.DSProfileReady = true;
+                    }, (error) => {
+                        Debug.log({'users/get/error': error});
+
+                        self.DSProfile = DSProfile.get();
+                        self.DSProfileReady = true;
+                    });
                 });
             }, (error) => {
                 Debug.log({'error': error})
@@ -327,22 +350,6 @@ export default {
 
                     if (data.data.response && data.data.response.length) {
                         this.VKProfile = data.data.response[0]
-
-                        this.DSProfileSet({
-                            'first_name':   this.VKProfile.first_name,
-                            'last_name':    this.VKProfile.last_name,
-                            'bdate':        null, // this.VKProfile.bdate,
-                            'avatar':       this.VKProfile.photo_100,
-                            'vk_id':        this.VKProfile.id,
-                            'city': {
-                                id:         this.VKProfile.city.id,
-                                title:      this.VKProfile.city.title,
-                                region: {
-                                    id: null,
-                                    title:  this.VKProfile.country.title
-                                }
-                            }
-                        });
                     }
 
                     callback();
@@ -350,53 +357,16 @@ export default {
             },
 
         // Профиль DonorSearch
-            DSProfileGet() {
-                if (!this.DSProfile.vk_id) return;
-
-                dsApi.send('users/' + this.DSProfile.vk_id, {}, (data) => {
-                    Debug.log({'users/response': data})
-
-                    for(let key in data) {
-                        if (!data[key]) delete data[key];
-                    }
-                    this.DSProfileSet(Object.assign(data, {
-                        _ready: true
-                    }));
-                }, (error) => {
-                    Debug.log({'users/error': error})
-
-                    this.DSProfileSet({
-                        _ready: true
-                    });
-                });
-            },
-            DSProfileSet(data) {
-                Debug.log({'DSProfileSet': data})
-
-                for(let key in data) {
-                    if (!this.DSProfile[key] && data[key]) {
-                        this.DSProfile[key] = data[key];
-                    }
-                }
-                this.DSProfile = Object.assign({}, this.DSProfile);
-            },
             DSProfileSave(data) {
                 let self = this;
 
-                if (!this.DSProfile.vk_id) {
-                    Debug.log('invalid DSProfile.vk_id');
-                    return;
-                }
+                DSProfile.set(data, true, (response) => {
+                    Debug.log({'users/update/success': response});
 
-                if (typeof data !== 'object') data = this.DSProfile;
-
-                dsApi.send('users', this.DSProfile, (data) => {
-                    Debug.log(data)
-
-                    if ('error' in data) {
+                    if ('error' in response) {
                         self.DSProfile._saved = 'error';
                     }
-                    if (data.isSuccess) {
+                    if (response.isSuccess) {
                         self.DSProfile._saved = 'ok';
                     }
                     self.DSProfile = Object.assign({}, self.DSProfile)
@@ -406,8 +376,8 @@ export default {
                         self.DSProfile = Object.assign({}, self.DSProfile)
                     }, 1000);
                 }, (error) => {
-                    Debug.log({'users/update - error': error})
-                }, 'POST');
+                    Debug.log({'users/update/error': error});
+                });
             },
 
         // Редактирование данных профиля
@@ -456,15 +426,16 @@ export default {
                 }, 300
             ),
             CitySelectionChoose(city) {
-                // debugger;
-
-                this.DSProfile.city = city;
                 this.CitySelection.search = '';
                 this.CitySelection.list = [];
                 this.activePanel = 'Profile';
 
-                this.DSProfileSave({
-                    city: this.DSProfile.city
+                if (!city) return;
+
+                DSProfile.set({
+                    city_id: city.id,
+                    city_title: city.title,
+                    region_title: city.region && city.region.title
                 });
             }
     },

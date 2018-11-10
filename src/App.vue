@@ -80,4 +80,24 @@ body, html: {
   padding: 0;
 }
 
+.client--vkiframe .View .Panel__in {
+    min-height: 100vh;
+    max-height: 100vh;
+    overflow-y: scroll;
+}
+.client--vkiframe ::-webkit-scrollbar {
+    width: 10px;
+}
+.client--vkiframe ::-webkit-scrollbar-track {
+    background: var(--background_page); 
+}
+.client--vkiframe ::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border: 3px solid var(--background_page);
+    border-radius: 5px;
+}
+.client--vkiframe ::-webkit-scrollbar-thumb:hover {
+    background: #555; 
+}
+
 </style>
