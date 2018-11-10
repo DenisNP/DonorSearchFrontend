@@ -3,6 +3,7 @@ import connect from '@vkontakte/vkui-connect';
 import handlers from './handlers';
 import { makeId } from '../globals';
 import { VK_APP_ID } from '../tokens';
+import Debug from '../Debug';
 
 export const CLIENT_VK_APPS = "VKAPPS";
 export const CLIENT_VK_IFRAME = "VKIFRAME";
@@ -10,11 +11,6 @@ export const CLIENT_SITE = "SITE";
 
 const FUNCTION = 'function';
 const UNDEFINED = 'undefined';
-
-let isClient = typeof window !== UNDEFINED;
-let androidBridge = isClient && window.AndroidBridge;
-let iosBridge = isClient && window.webkit && window.webkit.messageHandlers;
-let isDesktop = !androidBridge && !iosBridge;
 
 let subscribers = [];
 let client_type = CLIENT_SITE;
@@ -32,6 +28,14 @@ export default {
     } else {
       callback = arg1;
     }
+
+    let isClient = typeof window !== UNDEFINED;
+    let androidBridge = !!(isClient && window.AndroidBridge);
+    let iosBridge = !!(isClient && window.webkit && window.webkit.messageHandlers);
+    let isDesktop = !!(!androidBridge && !iosBridge);
+
+    //console && console.log("is desktop: ", isDesktop, androidBridge, iosBridge);
+    Debug.log("is desktop: ", isDesktop, androidBridge, iosBridge, !!window.webkit, !!window.webkit.messageHandlers);
 
     if(!isDesktop) {
 
