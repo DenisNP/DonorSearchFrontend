@@ -29,7 +29,6 @@ export default {
 		first_name: 		null,
 		last_name: 			null,
 		is_first_donor: 	null
->>>>>>> origin/master
 	},
 	keys: [
 		'avatar', 'vk_id', 'second_name', 'maiden_name', 'bdate', 'gender',
