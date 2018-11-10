@@ -1,39 +1,47 @@
 <template>
     <VKView v-bind="$attrs" :activePanel="activePanel" class="UserProfile">
-      <Alert :actions="alertActions" slot="popout" v-if="alertShown" :onClose="closeAlert">
-        Необходимо авторизоваться!
-      </Alert>
+        <Alert :actions="alertActions" slot="popout" v-if="alertShown" :onClose="closeAlert">
+            Необходимо авторизоваться!
+        </Alert>
+        
         <Panel id="Profile">
             <PanelHeader>
-                Профиль DonorSearch
+                DonorSearch
             </PanelHeader>
 
-            <Group>
-                <Div><pre>
-                    {{globalProfile}}
-                </pre></Div>
+            <DSCard title="Заголовок карточки" text="Текст карточки" icon="search" v-model="testModel">
+                Test
+            </DSCard>
 
-                <Div><pre>
-                    {{DSProfile}}
-                </pre></Div>
-            </Group>
+            {{testModel}}
 
             <Group>
                 <template v-if="!DSProfileReady">
                     <Spinner class="ProfileLoadingSpinner" />
                 </template>
                 <Cell class="UserProfileBlock" size="l" :class="{shown: DSProfileReady}"
-                    :description="UserProfileCityTitle"
+                    :description="DSProfile.city_title"
                 >
                     <Button level="secondary" slot="bottomContent" @click="ProfileEditOpen">
                         Редактировать
                     </Button>
-                    {{UserProfileFullName}}
+                    {{DSProfile.first_name}} {{DSProfile.last_name}}
                     <Avatar v-if="DSProfile.avatar" :src="DSProfile.avatar" :size="80" slot="before" />
                 </Cell>
             </Group>
 
-            <Group title="Город сдачи">
+            <Group>
+                <Header level="2">
+                    <span slot="aside" class="citySavedNotification"
+                        :class="{
+                            shown: CitySelection._saved !== false,
+                            error: CitySelectionSavedError,
+                            success: CitySelectionSavedSuccess
+                        }">
+                        {{CitySelectionSavedText}}
+                    </span>
+                    Город сдачи
+                </Header>
                 <List>
                     <Cell expandable
                         @click="CitySelectionOpen"
@@ -55,15 +63,6 @@
                     </Cell>
                 </List>
             </Group>
-
-            <Group title="Отладка">
-                <Div><pre>
-                    {{DSProfile}}
-                </pre></Div>
-                <!-- <Div><pre>
-                    {{debugData}}
-                </pre></Div> -->
-            </Group>
         </Panel>
 
         <Panel id="ProfileEdit">
@@ -78,34 +77,25 @@
                 Личные данные
             </PanelHeader>
 
-            <!-- <div class="savedNotification" :class="{shown: DSProfile._saved}">
-                <span>изменения сохранены</span>
-            </div> -->
-
             <Group>
                 <FormLayout>
                     <Input v-model="DSProfile.first_name" top="Имя" />
                     <Input v-model="DSProfile.last_name" top="Фамилия" />
-                    <Input v-model="DSProfile.bdate" top="Дата рождения" type="date" />
+                    <Input v-model="DSProfileBDate" top="Дата рождения" type="date" />
 
-                    <!-- <Input v-model="UserProfileCityTitle" top="Город сдачи" placeholder="Не выбран"
-                        @focus="CitySelectionOpen('ProfileEdit')"
-                    /> -->
+                    <Select placeholder="Выберите группу крови" top="Группа крови" v-model="DSProfile.blood_type">
+                        <option v-for="(item, index) in BloodTypes" :key="index" :value="item">
+                            {{item}}
+                        </option>
+                    </Select>
 
-                    <!-- <List>
-                        <Cell expandable
-                            @click="CitySelectionOpen"
-                            :description="ProfileCityRegion"
-                            :indicator="osname !== 'ios' ? 'Выбрать' : ''"
-                        >
-                            <vkui-icon :size="24" name="place" slot="before" />
-                            {{ProfileCityTitle || 'Не выбран'}}
-                        </Cell>
-                    </List> -->
+                    <Checkbox v-model="DSProfileNotFirst">Я уже сдавал кровь</Checkbox>
+
+                    
 
                     <div class="saveBtnContainer">
                         <Button @click="DSProfileSave">Сохранить</Button>
-
+                        
                         <span class="savedNotification"
                             :class="{
                                 shown: DSProfile._saved !== false,
@@ -168,6 +158,7 @@
 
 <script>
 
+import DSCard from './DSCard.vue'
 import DSProfile from '../DSProfile'
 
 import Debug from '../Debug'
@@ -186,11 +177,6 @@ import { VK_ACCESS_TOKEN, VK_APP_ID } from '../tokens.js'
 export default {
     name: 'UserProfile',
     props: {},
-    watch: {
-        DSProfile(val) {
-            // debugger;
-        }
-    },
     computed: {
         ProfileSavedError() {
             return this.DSProfile._saved == 'error'
@@ -199,9 +185,20 @@ export default {
             return this.DSProfile._saved == 'ok'
         },
         ProfileSavedText() {
-            return this.DSProfile._saved == 'ok'
-            ? 'изменения сохранены'
-            : 'не удалось сохранить'
+            if (this.DSProfile._saved == 'ok') return 'изменения сохранены';
+            if (this.DSProfile._saved == 'error') return 'не удалось сохранить';
+        },
+
+
+        CitySelectionSavedError() {
+            return this.CitySelection._saved == 'error'
+        },
+        CitySelectionSavedSuccess() {
+            return this.CitySelection._saved == 'ok'
+        },
+        CitySelectionSavedText() {
+            if (this.CitySelection._saved == 'ok') return 'сохранено';
+            if (this.CitySelection._saved == 'error') return 'не сохранено';
         },
 
         DSProfileReady() {
@@ -215,56 +212,30 @@ export default {
         },
         ProfileCityRegion() {
             return DSProfile.get('region_title');
-        },
-
-        // Приоритетные данных между DonorSearch и VKontakte
-        UserProfileFullName() {
-            let fullName = [];
-
-            if (this.DSProfile.first_name) {
-                fullName.push(this.DSProfile.first_name);
-            } else if (this.VKProfile.first_name) {
-                fullName.push(this.VKProfile.first_name);
-            }
-
-            if (this.DSProfile.last_name) {
-                fullName.push(this.DSProfile.last_name);
-            } else if (this.VKProfile.last_name) {
-                fullName.push(this.VKProfile.last_name);
-            }
-
-            return fullName.join(' ');
-        },
-        UserProfileCityTitle() {
-            let cityTitle = '';
-
-            if (this.DSProfile.city && this.DSProfile.title) {
-                cityTitle = this.DSProfile.city.title;
-            } else if (this.VKProfile.city && this.VKProfile.city.title) {
-                cityTitle = this.VKProfile.city.title;
-            }
-
-            return cityTitle;
-        },
-        UserProfileAvatar() {
-            let avatar = '';
-
-            if (this.DSProfile.avatar) {
-                avatar = this.DSProfile.avatar;
-            } else if (this.VKProfile.photo_100) {
-                avatar = this.VKProfile.photo_100;
-            }
-
-            return avatar;
         }
     },
     watch: {
         globalProfile(val) {
-            this.DSProfile = Object.assign(this.DSProfile, val)
+            this.DSProfile = Object.assign(this.DSProfile, val);
+        },
+        DSProfile(val) {
+            let date = new Date(val.bdate);
+            this.DSProfileBDate = [
+                date.getFullYear(),
+                date.getMonth() + 1,
+                date.getDate()
+            ].join('-');
+            this.DSProfileNotFirst = !this.DSProfile.is_first_donor;
         }
     },
     data() {
         return {
+            testModel: true,
+            globalProfile: DSProfile,
+
+            data() {
+        return {
+            testModel: true,
             globalProfile: DSProfile,
 
             // Alert
@@ -284,6 +255,8 @@ export default {
             activePanel: 'Profile',
 
             // Данные от DonorSearch и от VKontakte
+            DSProfileBDate: null,
+            DSProfileNotFirst: false,
             DSProfile: DSProfile.get(),
             VKProfile: {},
 
@@ -294,6 +267,17 @@ export default {
                 ready: true,
                 list: []
             },
+
+            BloodTypes: [
+                '0(I) Rh+',
+                '0(I) Rh-',
+                'A(II) Rh+',
+                'A(II) Rh-',
+                'B(III) Rh+',
+                'B(III) Rh-',
+                'AB(IV) Rh+',
+                'AB(IV) Rh-'
+            ],
 
             // Массив типов донации
             DonationTypes: [
@@ -339,22 +323,15 @@ export default {
                         Debug.log({'users/get/success': data});
 
                         self.DSProfile = DSProfile.get();
-                        self.DSProfileReady = true;
                     }, (error) => {
                         Debug.log({'users/get/error': error});
 
                         self.DSProfile = DSProfile.get();
-                        self.DSProfileReady = true;
                     });
                 });
             }, (error) => {
                 Debug.log({'error': error})
             })
-        });
-
-        let self = this;
-        EventBus.$on('show-alert',() => {
-          self.alertShown = true;
         });
     },
     methods: {
@@ -374,16 +351,19 @@ export default {
             },
 
         // Профиль DonorSearch
-            DSProfileSave(data) {
+            DSProfileSave() {
                 let self = this;
+                let data = Object.assign(self.DSProfile, {
+                    bdate: new Date(this.DSProfileBDate).toJSON(),
+                    is_first_donor: !this.DSProfileNotFirst
+                });
 
                 DSProfile.set(data, true, (response) => {
                     Debug.log({'users/update/success': response});
 
-                    if ('error' in response) {
+                    if (response.error) {
                         self.DSProfile._saved = 'error';
-                    }
-                    if (response.isSuccess) {
+                    } else if (response.isSuccess) {
                         self.DSProfile._saved = 'ok';
                     }
                     self.DSProfile = Object.assign({}, self.DSProfile)
@@ -412,7 +392,7 @@ export default {
             CitySelectionOpen(redirect) {
                 if (typeof redirect !== 'string') redirect = 'Profile'
                 this.CitySelectionRedirect = redirect
-                this.CitySelection.search = this.UserProfileCityTitle
+                this.CitySelection.search = DSProfile.get('city_title')
                 this.activePanel = 'CitySelection'
                 this.CitySelectionChange(this.CitySelection.search)
             },
@@ -424,7 +404,7 @@ export default {
                 function(e) {
                     let self = this;
 
-                    if (e.length) {
+                    if (e && e.length) {
                         self.CitySelection.empty = false;
                         self.CitySelection.ready = false;
 
@@ -443,26 +423,39 @@ export default {
                 }, 300
             ),
             CitySelectionChoose(city) {
-                this.CitySelection.search = '';
-                this.CitySelection.list = [];
-                this.activePanel = 'Profile';
+                self = this;
+
+                self.CitySelection.search = '';
+                self.CitySelection.list = [];
+                self.activePanel = 'Profile';
 
                 if (!city) return;
-
-                DSProfile.set({
+                city = {
                     city_id: city.id,
                     city_title: city.title,
                     region_title: city.region && city.region.title
-                });
-            },
+                };
 
-            closeAlert() {
-              this.alertShown = false;
-              EventBus.$emit('VKCInit');
+                this.DSProfile.city_title = city.city_title
+
+                DSProfile.set(city, true, (response) => {
+                    if (response.isSuccess) {
+                        self.CitySelection._saved = 'ok';
+                    } else if (response.error) {
+                        self.CitySelection._saved = 'error';
+                    }
+
+                    this.DSProfile = Object.assign(this.DSProfile, DSProfile.get())
+
+                    setTimeout(function() {
+                        self.CitySelection._saved = false;
+                    }, 1000);
+                }, () => {}, 'POST');
             }
     },
     components: {
-      Input
+      Input,
+      DSCard
     }
 }
 
