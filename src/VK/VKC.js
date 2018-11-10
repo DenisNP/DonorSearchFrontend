@@ -18,6 +18,8 @@ let access_token = "";
 let api_requests = {};
 let auth_callbacks = {};
 
+Debug.log(123);
+
 export default {
   init: (arg1, arg2) => {
     let callback;
@@ -34,9 +36,6 @@ export default {
     let isDesktop = !!(!androidBridge && !iosBridge);
 
     //console && console.log("is desktop: ", isDesktop, androidBridge, iosBridge);
-    window.debug['log'] = [
-      "is desktop: ", isDesktop, androidBridge, iosBridge, !!window.webkit
-    ];
 
     if(!isDesktop) {
 
