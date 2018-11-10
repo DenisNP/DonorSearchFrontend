@@ -139,8 +139,10 @@
 
 <script>
 
-// import '@denull/vkui'
-import { Input } from '@denull/vkui/src/components'
+import EventBus from '../EventBus'
+
+import '@denull/vkui'
+// import { Input } from '@denull/vkui/src/components'
 import { platform, IOS, ANDROID } from '@denull/vkui'
 
 import _ from 'lodash'
@@ -269,10 +271,20 @@ export default {
         }
     },
     mounted() {
-        this.VKAuth(() => {
-            this.VKProfileGet()
-            this.DSProfileGet()
-        })
+        EventBus.$on('VKCInit', () => {
+            let self = this;
+
+            console.log('VKCInit')
+
+            VKC.auth(VK_APP_ID, 'email,friends', (data) => {
+                console.log('response', data)
+
+                self.VKProfileGet();
+                self.DSProfileGet();
+            }, (error) => {
+                console.log('error', data)
+            })
+        });
     },
     methods: {
         // Авторизация VKontakte

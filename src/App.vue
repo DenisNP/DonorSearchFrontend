@@ -44,6 +44,8 @@ export default {
         VKC.subscribe((e) => {
           EventBus.$emit(e.type, e.data);
         });
+
+        EventBus.$emit('VKCInit');
       });
     },
     watch: {
