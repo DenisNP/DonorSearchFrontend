@@ -92,14 +92,14 @@
           <!-- Confirm visit -->
           <div class="balloon" v-show="timeline.confirm_visit && timeline.confirm_visit.date_from && timeline.confirm_visit.date_to">
             <div class="timeline-date">
-              <span style="display:block;">{{ showDate(timeline.confirm && timeline.confirm_visit.date_from) }}</span> <span class="dash"></span> <span>{{ showDate(timeline.confirm && timeline.confirm_visit.date_to) }}</span>
+              <span style="display:block;">{{ showDate(timeline.confirm_visit && timeline.confirm_visit.date_from) }}</span> <span class="dash"></span> <span>{{ showDate(timeline.confirm_visit && timeline.confirm_visit.date_to) }}</span>
             </div>
             <vkui-icon name="user_added" class="MyIcon28" :size="24" :style="{color: '#27ae60', 'margin-top': '6px'}"/>
             <div class="balloon-content">
               <Group title="Повторный визит">
                 <Input class="MyInput" type="date" v-model="confirmDate" />
-                <Checkbox v-show="datePassed(timeline.confirm && timeline.confirm_visit.visit_date)" v-model="withoutDonation">Подтверждение без сдачи</Checkbox>
-                <div style="display:flex;" v-show="datePassed(timeline.confirm && timeline.confirm_visit.visit_date)" >
+                <Checkbox v-show="datePassed(timeline.confirm_visit && timeline.confirm_visit.visit_date)" v-model="withoutDonation">Подтверждение без сдачи</Checkbox>
+                <div style="display:flex;" v-show="datePassed(timeline.confirm_visit && timeline.confirm_visit.visit_date)" >
                   <Button @click="approved(true)" class="button-margin">
                     Подтвердить
                   </Button>
