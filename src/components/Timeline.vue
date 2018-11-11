@@ -90,7 +90,7 @@
             </div>
           </div>
           <!-- Confirm visit -->
-          <div class="balloon" v-show="timeline.confirm && timeline.confirm_visit.date_from && timeline.confirm_visit.date_to">
+          <div class="balloon" v-show="timeline.confirm_visit && timeline.confirm_visit.date_from && timeline.confirm_visit.date_to">
             <div class="timeline-date">
               <span style="display:block;">{{ showDate(timeline.confirm && timeline.confirm_visit.date_from) }}</span> <span class="dash"></span> <span>{{ showDate(timeline.confirm && timeline.confirm_visit.date_to) }}</span>
             </div>
