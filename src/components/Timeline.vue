@@ -177,7 +177,7 @@
         Памятка к сдаче
       </PanelHeader>
 
-      <Group>
+      <Group class="RecommendationsListGroup">
         <List>
           <Cell description="Не принимайте лекарства с аспирином и анальгетиками">
             <vkui-icon :size="24" name="error" slot="before" />
@@ -478,6 +478,11 @@ export default {
   /* margin-right: 6px; */
   margin-left: 6px;
   margin-bottom: 10px;
+}
+
+.RecommendationsListGroup .Cell__description:not(:empty) {
+    white-space: initial;
+    line-height: 20px !important;
 }
 
 </style>
