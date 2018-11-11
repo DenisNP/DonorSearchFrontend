@@ -196,7 +196,8 @@ export default {
                 id: s.id,
                 without_registration: s.without_registration,
                 accept_first_timers: s.accept_first_timers,
-                phones: s.phones || ''
+                phones: s.phones || '',
+                requrement_of_user_blood: s.requrement_of_user_blood
               };
 
               self.markers.push(sData);
@@ -329,7 +330,7 @@ export default {
   background-repeat: no-repeat;
   background-size: 210px;
   background-position: 0 0;
-  z-index: 10;
+  z-index: 2;
 
   animation: station-active-pulse 2s steps(1) infinite;
 }

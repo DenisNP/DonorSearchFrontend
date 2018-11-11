@@ -55,6 +55,10 @@ export default {
       EventBus.$on('show-map', () => {
         self.setActiveStory('map');
       });
+
+      EventBus.$on('show-timeline', () => {
+        self.setActiveStory('timeline');
+      });
     },
     watch: {
       '$route' (to, from) {

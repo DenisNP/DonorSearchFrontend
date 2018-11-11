@@ -167,7 +167,6 @@ import DSProfile from '../DSProfile'
 import Debug from '../Debug'
 import EventBus from '../EventBus'
 
-//import '@denull/vkui'
 import { Input } from '@denull/vkui/src/components'
 import { platform, IOS, ANDROID } from '@denull/vkui'
 

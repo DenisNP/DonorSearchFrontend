@@ -18,7 +18,7 @@
 
 // VKUI Stylesheets
     import '@denull/vkui/src/styles/generated/palette.css';
-    import '@denull/vkui/src/styles/generated/client_red.css';
+    //import './client_red.css';
 
 // VKUI Layout & VueRouter connection
     import { Epic, Root, VKView } from '@denull/vkui/src/components'

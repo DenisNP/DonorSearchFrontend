@@ -1,7 +1,7 @@
 <template>
   <VKView :activePanel="activePanel" v-bind="$attrs">
       <ActionSheet v-if="sheetOpened" slot="popout"
-        :onClose="sheetClose"
+        :onClose="cancelDate"
         text="Запись на сдачу"
       >
         <ActionSheetItem @click="sheetClose">{{ lastStationId ? 'Сохранить дату' : 'Выбрать станцию' }}</ActionSheetItem>
@@ -346,11 +346,11 @@ export default {
   },
   watch: {
     donationDate(val) {
-      if(val)
+      if(val && !this.timeline.donation_date)
         this.sheetOpened = true;
     },
     confirmDate(val) {
-      if(val)
+      if(val && (!this.confirm_visit || !this.confirm_visit.visit_date))
         this.sheetConfirmOpened = true;
     }
   },
@@ -361,6 +361,8 @@ export default {
       self.lastStationAddress = data.address || "";
       self.lastStationTitle = data.title || "";
       self.checkSendDate();
+
+      EventBus.$emit('show-timeline');
     });
 
     EventBus.$on('timeline-opened', () => {
