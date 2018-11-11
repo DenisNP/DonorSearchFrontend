@@ -24,7 +24,7 @@
         <div class="left-column"></div>
         <div class="right-column Avatar-transparent">
           <!-- First subscribtion -->
-          <div class="balloon" v-show="timeline.appointment_date_from && timeline.appointment_date_to && !timeline.station_id">
+          <div class="balloon" v-show="timeline.appointment_date_from && timeline.appointment_date_to && !timeline.donation_date">
             <div class="timeline-date">
               <span style="display: block;">{{ showDate(timeline.appointment_date_from) }}</span> <span class="dash"></span> <span>{{ showDate(timeline.appointment_date_to) }}</span>
             </div>
@@ -53,7 +53,7 @@
             </div>
           </div>
           <!-- Donation -->
-          <div class="balloon" v-show="timeline.station_id">
+          <div class="balloon" v-show="timeline.donation_date">
             <div class="timeline-date">
               {{ showDate(timeline.donation_date) }}
             </div>
@@ -72,17 +72,12 @@
                   </InfoRow>
                 </Div>
 
-                <div style="display:flex;" v-show="datePassed(timeline.donation_date)" >
-                  <!-- <File size="l" class="button-margin" @change="photoSelected(true)">
-                    <vkui-icon name="camera" :size="24"></vkui-icon>
-
-                  </File> -->
-
-                  <Button size="l" component="label" class="button-margin">
+                <div style="display:flex; " v-show="datePassed(timeline.donation_date)" >
+                  <Button size="l" component="label" class="my-button-margin">
                     <input class="File__input" type="file" @change="photoSelected(true)"/>
                     <vkui-icon name="camera" :size="24"></vkui-icon>
                   </Button>
-                  <Button size="l" level="secondary" style="display: flex;" class="button-margin" @click="photoSelected(false)">
+                  <Button size="l" level="secondary" style="display: flex;" class="my-button-margin" @click="photoSelected(false)">
                     Отменить
                   </Button>
                 </div>
@@ -100,10 +95,10 @@
                 <Input class="MyInput" type="date" v-model="confirmDate" />
                 <Checkbox v-show="datePassed(timeline.confirm_visit && timeline.confirm_visit.visit_date)" v-model="withoutDonation">Подтверждение без сдачи</Checkbox>
                 <div style="display:flex;" v-show="datePassed(timeline.confirm_visit && timeline.confirm_visit.visit_date)" >
-                  <Button @click="approved(true)" class="button-margin">
+                  <Button @click="approved(true)" class="my-button-margin">
                     Подтвердить
                   </Button>
-                  <Button level="secondary"  class="button-margin" @click="approved(false)">
+                  <Button level="secondary"  class="my-button-margin" @click="approved(false)">
                     Отменить
                   </Button>
                 </div>
@@ -311,6 +306,7 @@ export default {
         this.timeline.confirm_visit = {};
 
       this.timeline.confirm_visit.without_donation = !!this.withoutDonation;
+      this.timeline.confirm_visit.success = val;
       this.loader = true;
       this.sendTimeline();
     },
@@ -340,8 +336,9 @@ export default {
     },
     setObjects() {
       this.withoutDonation = this.timeline.confirm_visit === null ? null : this.timeline.confirm_visit.without_donation;
-      this.donationDate = this.timeline.donation_date;
-      this.confirmDate = this.timeline.confirm_visit === null ? null : this.timeline.confirm_visit.visit_date;
+      this.donationDate = this.showDate(this.timeline.donation_date);
+      this.confirmDate = this.timeline.confirm_visit === null ? null : this.showDate(this.timeline.confirm_visit.visit_date);
+      if(this.timeline.station_id) this.lastStationId = this.timeline.station_id;
     }
   },
   watch: {
@@ -350,7 +347,7 @@ export default {
         this.sheetOpened = true;
     },
     confirmDate(val) {
-      if(val && (!this.confirm_visit || !this.confirm_visit.visit_date))
+      if(val && (!this.timeline.confirm_visit || !this.timeline.confirm_visit.visit_date))
         this.sheetConfirmOpened = true;
     }
   },
@@ -474,10 +471,10 @@ export default {
   border-right: 2px dotted var(--text_secondary);
 }
 
-.button-margin {
+.my-button-margin {
   /* margin-right: 6px; */
-  margin-left: 6px;
-  margin-bottom: 10px;
+  margin-left: 6px!important;
+  margin-bottom: 10px!important;
 }
 
 .RecommendationsListGroup .Cell__description:not(:empty) {
