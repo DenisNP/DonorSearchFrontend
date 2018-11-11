@@ -235,9 +235,10 @@ export default {
         },
         DSProfile(val) {
             let date = new Date(val.bdate);
+            if (isNaN(date.getTime())) return '';
             this.DSProfileBDate = [
-                date.getFullYear()
-                ('0' + (date.getMonth() + 1)).slice(-2)
+                date.getFullYear(),
+                ('0' + (date.getMonth() + 1)).slice(-2),
                 ('0' + date.getDate()).slice(-2)
             ].join('-');
 
