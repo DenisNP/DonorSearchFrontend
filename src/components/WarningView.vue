@@ -13,8 +13,26 @@
 
 		<Group>
 			<List>
-				<Cell title="Не есть!" description="Никогда!">
+				<Cell description="Никогда!">
 					<vkui-icon :size="24" name="error" slot="before" />
+
+					Не есть!
+				</Cell>
+
+				<Cell description="Вообще!">
+					<vkui-icon :size="24" name="error" slot="before" />
+
+					И не пить!
+				</Cell>
+			</List>
+		</Group>
+
+		<Group>
+			<List>
+				<Cell description="Для количества!">
+					<vkui-icon :size="24" name="error" slot="before" />
+
+					Ну и не спать!
 				</Cell>
 			</List>
 		</Group>
@@ -34,7 +52,7 @@ export default {
 		}
 	},
 	methods: {
-		
+
 	}
 }
 
