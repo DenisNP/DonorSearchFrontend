@@ -59,6 +59,9 @@ export default {
           }
           EventBus.$emit('map-opened');
         }
+      },
+      '@route' (to, from) {
+        Debug.log({router: [from, to]});
       }
     },
     data() {
