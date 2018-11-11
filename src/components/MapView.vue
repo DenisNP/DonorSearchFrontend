@@ -25,7 +25,7 @@
         </Header>
         <Div class="shrinkedDiv" v-show="station && station.requrement_of_user_blood != 0">
           <Cell>
-            <Avatar :size="28" slot="before" :src="station && station.requrement_of_user_blood == -2 ? activeIcon : normalIcon" />
+            <Avatar :size="28" slot="before" :src="(station && station.requrement_of_user_blood == -2) ? activeIcon : normalIcon" />
             {{ bloodRequirement }}
             <Button slot="asideContent" level="primary" v-show="userCanStartTimeline">Записаться</Button>
           </Cell>
@@ -42,7 +42,7 @@
             {{ station && station.phones }}
           </InfoRow>
         </Div>
-        <Div>
+        <Div class="Avatar-transparent">
           <Cell v-show="station && station.accept_first_timers">
               <Avatar :size="28" slot="before" >
                 <vkui-icon name="education" :size="24" :style="{color: '#27ae60'}"/>
@@ -97,8 +97,8 @@ export default {
         lng: "",
         lat: ""
       },
-      lastStationsGot: 0,
       station: null,
+      lastStationsGot: 0,
       activeIcon: "https://developer.donorsearch.org/dropplet.svg",
       normalIcon: "https://developer.donorsearch.org/design_elements/dropplets/full_blood.svg",
       timeline: DSProfile.timeline
@@ -112,7 +112,7 @@ export default {
 
     let self = this;
     EventBus.$on('map-opened', function() {
-      self.loadStations();
+
     });
   },
   methods: {
@@ -124,6 +124,7 @@ export default {
     },
 
     loaded(map) {
+      this.map = map;
       this.updateMarkers(this.markers);
     },
 
@@ -167,10 +168,10 @@ export default {
       if(force || this.lastStationsGot > 0) {
         let self = this;
         let diff = Date.now - this.lastStationsGot;
-        if(diff > 3600000 || force) {
+        if(diff > 3600000 || force && DSProfile.data.vk_is) {
           this.lastStationsGot = Date.now;
 
-          DSApi.send('Stations/' + '463377', {}, (data) => {
+          DSApi.send('Stations/' + DSProfile.data.vk_id, {}, (data) => {
             self.markers = [];
 
             data.forEach((s) => {
@@ -194,6 +195,8 @@ export default {
 
               self.markers.push(sData);
             });
+
+            DSProfile.stations = self.markers;
           });
         }
       }
@@ -333,6 +336,12 @@ export default {
   width: 60px!important;
 }
 
+.Div.shrinkedDiv {
+  padding-top: 0!important;
+  padding-bottom: 0!important;
+  margin-top: -3px!important;
+}
+
 </style>
 
 <style scoped>
@@ -340,12 +349,6 @@ export default {
 .Div.myDiv {
   padding-top: 6px!important;
   padding-bottom: 6px!important;
-}
-
-.Div.shrinkedDiv {
-  padding-top: 0!important;
-  padding-bottom: 0!important;
-  margin-top: -3px!important;
 }
 
 </style>

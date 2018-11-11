@@ -23,8 +23,6 @@ export default {
 		has_registration: null,
 		first_name: 			null,
 		last_name: 				null,
-		first_name: 		null,
-		last_name: 			null,
 		is_first_donor: 	null
 	},
 	keys: [
@@ -46,6 +44,8 @@ export default {
 		"blood_class_ids": 0,
 		"img": null,
 		"station_id": null,
+		"station_title": null,
+		"station_address": null,
 		"recomendation_timestamp": null,
 		"finished": false,
 		"confirm_visit": {
