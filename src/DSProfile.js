@@ -36,7 +36,7 @@ export default {
 		"id": 0,
 		"ds_Id": null,
 		"vk_id": 0,
-		"previous_date_donation": null,
+		"previous_donation_date": null,
 		"appointment_date_from": null,
 		"appointment_date_to": null,
 		"donation_date": null,

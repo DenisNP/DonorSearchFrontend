@@ -4,7 +4,7 @@
         :onClose="sheetClose"
         text="Запись на сдачу"
       >
-        <ActionSheetItem @click="sheetClose">Сохранить дату</ActionSheetItem>
+        <ActionSheetItem @click="sheetClose">{{ lastStationId ? 'Сохранить дату' : 'Выбрать станцию' }}</ActionSheetItem>
         <ActionSheetItem @click="cancelDate" theme="destructive">Отмена</ActionSheetItem>
       </ActionSheet>
 
@@ -215,6 +215,8 @@ export default {
         loader: false,
         confirmDate: null,
         lastStationId: null,
+        lastStationAddress: "",
+        lastStationTitle: "",
         firstLoaded: false
       }
   },
@@ -276,13 +278,21 @@ export default {
       });
     },
     photoSelected(val) {
-      //if(val) {
-        let self = this;
-        self.loader = true;
-        timeline.success = !!val;
+      let self = this;
+      self.loader = true;
 
+      if(val) {
+        self.timeline.success = !!val;
         this.sendTimeline();
-      //}
+      } else {
+        DSApi.send('donations/delete/' + DSProfile.data.vk_id + '/' + self.timeline.id, {}, (res) => {
+          self.loader = false;
+          DSProfile.timeline = Object.assign(self.timeline, res);
+          self.setObjects();
+        }, (err) => {
+          self.loader = false;
+        },'POST');
+      }
     },
     approved(val) {
       if(!this.timeline.confirm_visit)
@@ -296,8 +306,10 @@ export default {
       if(this.lastStationId && this.donationDate) {
         this.loader = true;
         let self = this;
-        timeline.donation_date = this.dateToJson(this.donationDate);
-        timeline.station_id = this.lastStationId;
+        self.timeline.donation_date = this.dateToJson(this.donationDate);
+        self.timeline.station_id = Number(this.lastStationId);
+        self.timeline.station_title = this.lastStationTitle;
+        self.timeline.station_address = this.lastStationAddress;
         this.sendTimeline();
       }
     },
@@ -306,7 +318,7 @@ export default {
     },
     sendTimeline() {
       let self = this;
-      DSApi.send('/api/donations', this.timeline, (res) => {
+      DSApi.send('donations', this.timeline, (res) => {
         self.loader = false;
         DSProfile.timeline = Object.assign(self.timeline, res);
         self.setObjects();
@@ -332,8 +344,10 @@ export default {
   },
   mounted() {
     let self = this;
-    EventBus.$on('subscribe-station', (id) => {
-      self.lastStationId = id;
+    EventBus.$on('subscribe-station', (data) => {
+      self.lastStationId = Number(data.id);
+      self.lastStationAddress = data.address || "";
+      self.lastStationTitle = data.title || "";
       self.checkSendDate();
     });
 
@@ -347,7 +361,7 @@ export default {
           self.setObjects();
         }, (err) => {
           self.loader = false;
-        },'POST');
+        },'GET');
       }
     });
   },

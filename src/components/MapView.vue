@@ -211,7 +211,7 @@ export default {
       },
 
       sendSubscribe() {
-        EventBus.$emit('subscribe-station', station.id);
+        EventBus.$emit('subscribe-station', this.station);
       }
   },
   computed: {
