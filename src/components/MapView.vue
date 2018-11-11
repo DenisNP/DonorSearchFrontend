@@ -255,7 +255,7 @@ export default {
       let dTo = new Date(this.timeline.appointment_date_to);
       let dn = Date.now();
       let diff = dFrom - dn;
-      return dTo >= dn && diff <= 3600000*24*7;
+      return /*dTo >= dn &&*/ diff <= 3600000*24*7;
     }
   },
   watch: {

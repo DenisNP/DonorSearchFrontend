@@ -238,7 +238,7 @@ export default {
       let dTo = new Date(this.timeline.appointment_date_to);
       let dn = Date.now();
       let diff = dFrom - dn;
-      return dTo >= dn && diff <= 3600000*24*7;
+      return /*dTo >= dn &&*/ diff <= 3600000*24*7;
     }
   },
   methods: {
@@ -339,6 +339,7 @@ export default {
       this.donationDate = this.showDate(this.timeline.donation_date);
       this.confirmDate = this.timeline.confirm_visit === null ? null : this.showDate(this.timeline.confirm_visit.visit_date);
       if(this.timeline.station_id) this.lastStationId = this.timeline.station_id;
+      else if(!this.timeline.donation_date) this.lastStationId = null;
     }
   },
   watch: {
