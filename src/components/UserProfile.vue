@@ -9,6 +9,15 @@
                 DonorSearch
             </PanelHeader>
 
+            <Group class="DonationsStats">
+                <List>
+                    <Cell>
+                        <vkui-icon :size="24" name="like" style="color: red" slot="before" :class="shown: Donations.length" />
+                        <span style="color: red">{{ savedPeopleText }}</span>
+                    </Cell>
+                </List>
+            </Group>
+
             <Group>
                 <template v-if="!DSProfileReady">
                     <Spinner class="ProfileLoadingSpinner" />
@@ -172,6 +181,18 @@ export default {
     name: 'UserProfile',
     props: {},
     computed: {
+        savedPeopleText() {
+            let count = this.Donations.length * 3;
+            let _count = count % 10;
+
+            if (count == 0) return 'Добро пожаловать!';
+
+            if (_count == 0 || _count > 4) return count + ' жизней спасено!';
+            if (_count >= 2 && _count < 5) return count + ' жизни спасено!';
+            if (_count == 1) return count + ' жизнь спасена!';
+        },
+
+
         ProfileSavedError() {
             return this.DSProfile._saved == 'error'
         },
@@ -287,6 +308,8 @@ export default {
                 'AB(IV) Rh-'
             ],
 
+            Donations: [],
+
             // Массив типов донации
             DonationTypesMask: new Array(6).fill(false),
             DonationTypes: [
@@ -333,6 +356,8 @@ export default {
                 Debug.log({'response': data})
 
                 self.VKProfileGet(() => {
+                    self.getDonations(self.VKProfile.id);
+
                     DSProfile.load(self.VKProfile.id, (data) => {
                         data = DSProfile.setVK(self.VKProfile)
 
@@ -355,6 +380,18 @@ export default {
         });
     },
     methods: {
+        getDonations(vk_id) {
+            self = this;
+
+            dsApi.send('donations/' + vk_id, {type: 'successful'},
+                (response) => {
+                    self.Donations = response; // new Array(Math.ceil(Math.random() * 100)) // response;
+                },
+                (error) => {
+                }
+            );
+        },
+
         // Профиль VKontakte
             VKProfileGet(callback = () => {}) {
                 VKC.quickApi('users.get', {
@@ -533,6 +570,37 @@ pre {
     overflow: visible;
     white-space: initial;
     line-height: 20px;
+}
+
+.DonationsStats .Icon {
+    opacity: 0;
+    width: 0;
+    transition: .2s;
+}
+.DonationsStats .Icon.shown {
+    opacity: 1;
+    width: 24px;
+}
+.DonationsStats {
+    background: transparent;
+}
+.DonationsStats:before,
+.DonationsStats:after {
+    display: none;
+}
+.DonationsStats .List {
+    background: transparent;
+}
+.DonationsStats.Cell__before {
+    justify-content: unset;
+}
+.DonationsStats .Cell__in {
+    display: flex;
+    justify-content: center;
+}
+.DonationsStats .Cell__main {
+    display: inline-block;
+    flex-grow: unset;
 }
 
 </style>

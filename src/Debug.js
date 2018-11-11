@@ -7,6 +7,6 @@ export default {
   },
 
   get() {
-  	return debug
+    return debug
   }
 }

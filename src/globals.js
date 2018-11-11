@@ -33,7 +33,7 @@ export function jsonpRequest(address, params, onComplete, onError) {
     let url = address + (parsStr ? '?' + parsStr : '');
     jsonp(url, {}, (err, data) => {
         if(err) {
-            console && console.log("Jsonp error:") && console.log(err);
+            console && console.log("Jsonp error:", err);
             if(onError != null) onError(err);
         } else if(onComplete != null) {
             onComplete(data);

@@ -59,6 +59,12 @@ export default {
 	},
 
 	_loaded: false,
+	
+	_LoadedQueue: [],
+	onLoaded(callback = () => {}) {
+		if (!this._loaded) _LoadedQueue.push(callback);
+		else if (typeof callback == 'function') callback();
+	},
 
 	// Is VK_id stored
 		_has_vk() {
@@ -80,6 +86,12 @@ export default {
 
 			DSApi.send('users/' + vk_id, {}, (data) => {
 				DSProfile._loaded = true;
+
+				for(let k in this._LoadedQueue) {
+					if (typeof this._LoadedQueue[k] == 'function') {
+						this._LoadedQueue[k].apply();
+					}
+				}
 
 				onSuccess(DSProfile.set(data));
 			}, onError);
