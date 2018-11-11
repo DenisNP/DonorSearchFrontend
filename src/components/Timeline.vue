@@ -9,7 +9,7 @@
       </ActionSheet>
 
       <ActionSheet v-if="sheetConfirmOpened" slot="popout"
-        :onClose="sheetClose"
+        :onClose="cancelConfirmDate"
         text="Запись на подтверждение"
       >
         <ActionSheetItem @click="sheetConfirmClose">Сохранить дату</ActionSheetItem>
@@ -96,10 +96,10 @@
                 <Checkbox v-show="datePassed(timeline.confirm_visit && timeline.confirm_visit.visit_date)" v-model="withoutDonation">Подтверждение без сдачи</Checkbox>
                 <div style="display:flex;" v-show="datePassed(timeline.confirm_visit && timeline.confirm_visit.visit_date)" >
                   <Button @click="approved(true)" class="my-button-margin">
-                    Подтвердить
+                    ОК
                   </Button>
                   <Button level="secondary"  class="my-button-margin" @click="approved(false)">
-                    Отменить
+                    Отмена
                   </Button>
                 </div>
               </Group>
