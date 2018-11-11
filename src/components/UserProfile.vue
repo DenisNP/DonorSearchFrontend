@@ -317,22 +317,22 @@ export default {
                     icon: 'https://developer.donorsearch.org/design_elements/dropplets/full_blood.svg',
                     title: 'Цельная кровь',
                     key: 'full_blood',
-                    text: '',
+                    text: 'Процесс сдачи крови занимает буквально 10–15 минут. Цельную кровь рекомендуется сдавать, когда группа крови неизвестна',
                 }, {
                     icon: 'https://developer.donorsearch.org/design_elements/dropplets/plazma.svg',
                     title: 'Плазма',
                     key: 'plazma',
-                    text: 'Применяется при массивных кровотечениях, ожогах, для производства важнейших медицинских препаратов'
+                    text: 'Применяется при массовых кровотечениях, ожогах. Рекомендуется для сдачи донорам AB(IV) Rh+ и AB(IV) Rh-'
                 }, {
                     icon: 'https://developer.donorsearch.org/design_elements/dropplets/eritocites.svg',
                     title: 'Эритроциты',
                     key: 'eritocites',
-                    text: 'При анемии (в т.ч. при большой кровопотере)'
+                    text: 'По существующим правилам донорами могут быть только здоровые молодые мужчины. Рекомендуется для сдачи донорам 0(I) Rh+ и 0(I) Rh-'
                 }, {
                     icon: 'https://developer.donorsearch.org/design_elements/dropplets/granulocites.svg',
                     title: 'Гранулоциты',
                     key: 'granulocites',
-                    text: 'Применяются по показаниям лечащего врача при ряде онкологических заболеваний'
+                    text: 'Играют ключевую роль в борьбе организма с бактериальными и некоторыми другими инфекциями'
                 }, {
                     icon: 'https://developer.donorsearch.org/design_elements/dropplets/liekocites.svg',
                     title: 'Лейкоциты',
@@ -342,7 +342,7 @@ export default {
                     icon: 'https://developer.donorsearch.org/design_elements/dropplets/trombocites.svg',
                     title: 'Тромбоциты',
                     key: 'trombocites',
-                    text: 'Применяются при массивных кровотечениях, онкологических заболеваниях'
+                    text: 'Рекомендуется для сдачи донорам A(II) Rh+, A(II) Rh-, B(III) Rh+, B(III) Rh-'
                 }
             ]
         }
@@ -601,6 +601,14 @@ pre {
 .DonationsStats .Cell__main {
     display: inline-block;
     flex-grow: unset;
+}
+
+.DonationTypes .Cell__main {
+    padding-right: 0;
+}
+.DonationTypes .Cell__indicator + .Cell__aside:not(:empty) {
+    padding-left: 5px;
+    margin-right: -15px;
 }
 
 </style>
