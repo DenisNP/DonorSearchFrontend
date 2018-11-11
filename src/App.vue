@@ -50,6 +50,11 @@ export default {
         EventBus.$emit('VKCInit');
         this.clientType = "client--" + VKC.getClientType().toLowerCase();
       });
+
+      let self = this;
+      EventBus.$on('show-map', () => {
+        self.setActiveStory('map');
+      });
     },
     watch: {
       '$route' (to, from) {

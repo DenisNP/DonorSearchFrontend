@@ -43,7 +43,7 @@ export default {
 		"donation_success": null,
 		"blood_class_ids": 0,
 		"img": null,
-		"station_id": null,
+		"station_id": 0,
 		"station_title": null,
 		"station_address": null,
 		"recomendation_timestamp": null,
@@ -59,7 +59,7 @@ export default {
 	},
 
 	_loaded: false,
-	
+
 	_LoadedQueue: [],
 	onLoaded(callback = () => {}) {
 		if (!this._loaded) _LoadedQueue.push(callback);

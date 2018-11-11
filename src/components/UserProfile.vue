@@ -12,7 +12,7 @@
             <Group class="DonationsStats">
                 <List>
                     <Cell>
-                        <vkui-icon :size="24" name="like" style="color: red" slot="before" :class="shown: Donations.length" />
+                        <vkui-icon :size="24" name="like" style="color: red" slot="before" :class="{shown: Donations.length}" />
                         <span style="color: red">{{ savedPeopleText }}</span>
                     </Cell>
                 </List>
@@ -381,7 +381,7 @@ export default {
     },
     methods: {
         getDonations(vk_id) {
-            self = this;
+            let self = this;
 
             dsApi.send('donations/' + vk_id, {type: 'successful'},
                 (response) => {

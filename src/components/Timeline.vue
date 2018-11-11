@@ -8,6 +8,14 @@
         <ActionSheetItem @click="cancelDate" theme="destructive">Отмена</ActionSheetItem>
       </ActionSheet>
 
+      <ActionSheet v-if="sheetConfirmOpened" slot="popout"
+        :onClose="sheetClose"
+        text="Запись на подтверждение"
+      >
+        <ActionSheetItem @click="sheetConfirmClose">Сохранить дату</ActionSheetItem>
+        <ActionSheetItem @click="cancelConfirmDate" theme="destructive">Отмена</ActionSheetItem>
+      </ActionSheet>
+
       <ScreenSpinner slot="popout" v-if="loader"/>
 
     <Panel id="defTimeline">
@@ -16,15 +24,18 @@
         <div class="left-column"></div>
         <div class="right-column Avatar-transparent">
           <!-- First subscribtion -->
-          <div class="balloon" v-show="timeline.appointment_date_from && timeline.appointment_date_to">
+          <div class="balloon" v-show="timeline.appointment_date_from && timeline.appointment_date_to && !timeline.station_id">
             <div class="timeline-date">
               <span style="display: block;">{{ showDate(timeline.appointment_date_from) }}</span> <span class="dash"></span> <span>{{ showDate(timeline.appointment_date_to) }}</span>
             </div>
-            <vkui-icon name="recent_outline" :size="28" :style="{color: '#27ae60', 'margin-top': '6px'}"/>
+            <vkui-icon name="recent_outline" :size="28" :style="{color: '#ffc000', 'margin-top': '6px'}"/>
             <div class="balloon-content">
               <Group title="Запись на сдачу крови">
-                <Input class="MyInput" type="date" v-model="donationDate" />
-                <CellButton>Противопоказания</CellButton>
+                <Input v-show="userCanStartTimeline" class="MyInput" type="date" v-model="donationDate" />
+                <CellButton v-show="userCanStartTimeline" @click="activePanel = 'warnings'">Противопоказания</CellButton>
+                <Div v-show="!userCanStartTimeline">
+                  Ближайшая возможная дата записи для вас ещё не скоро, мы уведовим вас при её приближении
+                </Div>
               </Group>
             </div>
           </div>
@@ -35,7 +46,7 @@
             </div>
             <vkui-icon name="info" class="MyIcon28" :size="24" :style="{color: '#5181b8', 'margin-top': '6px'}"/>
             <div class="balloon-content BallonClear">
-              <Button size="xl" level="primary" @click="activePanel = 'warnings'">Памятка к сдаче</Button>
+              <Button size="xl" level="primary" @click="activePanel = 'recommendations'">Памятка к сдаче</Button>
               <!-- <Div>
                 <Button size="xl" level="secondary">Памятка</Button>
               </Div> -->
@@ -62,12 +73,16 @@
                 </Div>
 
                 <div style="display:flex;" v-show="datePassed(timeline.donation_date)" >
-                  <Button type="file" accept="image/*" capture="camera">
-                    <span slot="before">
-                      <vkui-icon name="camera" :size="24"/>
-                    </span>
+                  <!-- <File size="l" class="button-margin" @change="photoSelected(true)">
+                    <vkui-icon name="camera" :size="24"></vkui-icon>
+
+                  </File> -->
+
+                  <Button size="l" component="label" class="button-margin">
+                    <input class="File__input" type="file" @change="photoSelected(true)"/>
+                    <vkui-icon name="camera" :size="24"></vkui-icon>
                   </Button>
-                  <Button level="secondary">
+                  <Button size="l" level="secondary" style="display: flex;" class="button-margin" @click="photoSelected(false)">
                     Отменить
                   </Button>
                 </div>
@@ -79,16 +94,16 @@
             <div class="timeline-date">
               <span style="display:block;">{{ showDate(timeline.confirm_visit.date_from) }}</span> <span class="dash"></span> <span>{{ showDate(timeline.confirm_visit.date_to) }}</span>
             </div>
-            <vkui-icon name="user_add" :size="28" :style="{color: '#27ae60', 'margin-top': '6px'}"/>
+            <vkui-icon name="user_added" class="MyIcon28" :size="24" :style="{color: '#27ae60', 'margin-top': '6px'}"/>
             <div class="balloon-content">
               <Group title="Повторный визит">
-                <Input class="MyInput" type="date" />
-                <Checkbox v-model="withoutDonation">Подтверждение без сдачи</Checkbox>
+                <Input class="MyInput" type="date" v-model="confirmDate" />
+                <Checkbox v-show="datePassed(timeline.confirm_visit.visit_date)" v-model="withoutDonation">Подтверждение без сдачи</Checkbox>
                 <div style="display:flex;" v-show="datePassed(timeline.confirm_visit.visit_date)" >
-                  <Button type="file" accept="image/*" capture="camera">
+                  <Button @click="approved(true)" class="button-margin">
                     Подтвердить
                   </Button>
-                  <Button level="secondary">
+                  <Button level="secondary"  class="button-margin" @click="approved(false)">
                     Отменить
                   </Button>
                 </div>
@@ -179,8 +194,9 @@
 
 <script>
 
-import { VKView, Panel, PanelHeader, Cell, Avatar, Button, CellButton, Group, Input, Div, Checkbox, ScreenSpinner } from '@denull/vkui/src/components'
+import { VKView, Panel, PanelHeader, Cell, Avatar, Button, CellButton, Group, Input, Div, Checkbox, ScreenSpinner, File } from '@denull/vkui/src/components'
 import DSProfile from '../DSProfile'
+import EventBus from '../EventBus'
 
 export default {
   name: 'Timeline',
@@ -193,12 +209,25 @@ export default {
         activePanel: "defTimeline",
         withoutDonation: false,
         sheetOpened: false,
+        sheetConfirmOpened: false,
         donationDate: null,
-        loader: false
+        loader: false,
+        confirmDate: null
       }
   },
   computed: {
+    userCanStartTimeline() {
+      if(this.timeline.donation_date
+        || !this.timeline.appointment_date_from
+        || !this.timeline.appointment_date_to)
+       return false;
 
+      let dFrom = new Date(this.timeline.appointment_date_from);
+      let dTo = new Date(this.timeline.appointment_date_to);
+      let dn = Date.now();
+      let diff = dFrom - dn;
+      return dTo >= dn && diff <= 3600000*24*7;
+    }
   },
   methods: {
     showDate(d) {
@@ -213,6 +242,7 @@ export default {
     },
     sheetClose() {
       this.sheetOpened = false;
+      EventBus.$emit('show-map');
     },
     cancelDate() {
       this.donationDate = null;
@@ -220,12 +250,36 @@ export default {
       this.$nextTick(() => {
         self.sheetOpened = false;
       });
+    },
+    sheetConfirmClose() {
+      this.sheetConfirmOpened = false;
+    },
+    cancelConfirmDate() {
+      this.confirmDate = null;
+      let self = this;
+      this.$nextTick(() => {
+        self.sheetConfirmOpened = false;
+      });
+    },
+    photoSelected(val) {
+      console && console.log(val);
+    },
+    approved(val) {
+      console && console.log(val);
     }
   },
   watch: {
     donationDate() {
       this.sheetOpened = true;
+    },
+    confirmDate() {
+      this.sheetConfirmOpened = true;
     }
+  },
+  mounted() {
+    EventBus.$on('subscribe-station', (id) => {
+      
+    });
   },
   components: {
     VKView,
@@ -239,7 +293,8 @@ export default {
     Input,
     Div,
     Checkbox,
-    ScreenSpinner
+    ScreenSpinner,
+    File
   }
 }
 
@@ -274,6 +329,7 @@ export default {
   margin: 6px;
   border-radius: 8px;
   border: solid 1px #d7d8d999;
+  max-width: calc(100% - 83px);
 }
 
 .timeline-date {
@@ -318,6 +374,12 @@ export default {
   /* margin-right: 20px; */
   width: calc(100% - 7px);
   border-right: 2px dotted var(--text_secondary);
+}
+
+.button-margin {
+  /* margin-right: 6px; */
+  margin-left: 6px;
+  margin-bottom: 10px;
 }
 
 </style>

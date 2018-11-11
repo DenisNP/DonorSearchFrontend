@@ -27,7 +27,7 @@
           <Cell>
             <Avatar :size="28" slot="before" :src="(station && station.requrement_of_user_blood == -2) ? activeIcon : normalIcon" />
             {{ bloodRequirement }}
-            <Button slot="asideContent" level="primary" v-show="userCanStartTimeline">Записаться</Button>
+            <Button slot="asideContent" level="primary" v-show="userCanStartTimeline" @click="sendSubscribe">Записаться</Button>
           </Cell>
         </Div>
         <Div class="myDiv" v-show="station && station.address">
@@ -121,6 +121,11 @@ export default {
       map.addControl(new MapboxLanguage({
         defaultLanguage: 'ru'
       }));
+
+      let self = this;
+      DSProfile.onLoaded(() => {
+        self.loadStations(true);
+      });
     },
 
     loaded(map) {
@@ -165,10 +170,9 @@ export default {
     },
 
     loadStations(force) {
-      if(force || this.lastStationsGot > 0) {
+      if((force || this.lastStationsGot > 0) && DSProfile.data.vk_id) {
         let self = this;
         let diff = Date.now() - this.lastStationsGot;
-        if(diff > 3600000 || force && DSProfile.data.vk_is) {
           this.lastStationsGot = Date.now();
 
           DSApi.send('Stations/' + DSProfile.data.vk_id, {}, (data) => {
@@ -199,8 +203,11 @@ export default {
             DSProfile.stations = self.markers;
           });
         }
+      },
+
+      sendSubscribe() {
+        EventBus.$emit('subscribe-station', station.id);
       }
-    }
   },
   computed: {
 
