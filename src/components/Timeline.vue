@@ -197,6 +197,7 @@
 import { VKView, Panel, PanelHeader, Cell, Avatar, Button, CellButton, Group, Input, Div, Checkbox, ScreenSpinner, File } from '@denull/vkui/src/components'
 import DSProfile from '../DSProfile'
 import EventBus from '../EventBus'
+import DSApi from '../DSApi'
 
 export default {
   name: 'Timeline',
@@ -212,7 +213,8 @@ export default {
         sheetConfirmOpened: false,
         donationDate: null,
         loader: false,
-        confirmDate: null
+        confirmDate: null,
+        lastStationId: null
       }
   },
   computed: {
@@ -242,7 +244,10 @@ export default {
     },
     sheetClose() {
       this.sheetOpened = false;
-      EventBus.$emit('show-map');
+      if(!this.lastStationId)
+        EventBus.$emit('show-map');
+      else
+        this.checkSendDate();
     },
     cancelDate() {
       this.donationDate = null;
@@ -253,6 +258,11 @@ export default {
     },
     sheetConfirmClose() {
       this.sheetConfirmOpened = false;
+      if(this.confirmDate) {
+        this.timeline.confirm_visit.visit_date = this.dateToJson(this.confirmDate);
+        this.loader = true;
+        this.sendTimeline();
+      }
     },
     cancelConfirmDate() {
       this.confirmDate = null;
@@ -262,23 +272,66 @@ export default {
       });
     },
     photoSelected(val) {
-      console && console.log(val);
+      //if(val) {
+        let self = this;
+        self.loader = true;
+        timeline.success = !!val;
+
+        this.sendTimeline();
+      //}
     },
     approved(val) {
-      console && console.log(val);
+      this.timeline.confirm_visit.without_donation = !!this.withoutDonation;
+      this.loader = true;
+      this.sendTimeline();
+    },
+    checkSendDate() {
+      if(this.lastStationId && this.donationDate) {
+        this.loader = true;
+        let self = this;
+        timeline.donation_date = this.dateToJson(this.donationDate);
+        timeline.station_id = this.lastStationId;
+        this.sendTimeline();
+      }
+    },
+    dateToJson(d) {
+      return new Date(d).toJSON();
+    },
+    sendTimeline() {
+      let self = this;
+      DSApi.send('/api/donations', this.timeline, (res) => {
+        self.loader = false;
+        DSProfile.timeline = Object.assign(self.timeline, res);
+      }, (err) => {
+        self.loader = false;
+      });
     }
   },
   watch: {
-    donationDate() {
-      this.sheetOpened = true;
+    donationDate(val) {
+      if(val)
+        this.sheetOpened = true;
     },
-    confirmDate() {
-      this.sheetConfirmOpened = true;
+    confirmDate(val) {
+      if(val)
+        this.sheetConfirmOpened = true;
     }
   },
   mounted() {
+    let self = this;
     EventBus.$on('subscribe-station', (id) => {
-      
+      self.lastStationId = id;
+      self.checkSendDate();
+    });
+
+    EventBus.$on('timeline-opened', () => {
+      self.loader = true;
+      DSApi.send('/api/donations/' + DSProfile.data.vk_id + '?type=timeline', {}, (res) => {
+        self.loader = false;
+        DSProfile.timeline = Object.assign(self.timeline, res);
+      }, (err) => {
+        self.loader = false;
+      });
     });
   },
   components: {

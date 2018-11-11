@@ -83,6 +83,9 @@ export default {
             EventBus.$emit('map-opened');
           }
 
+          if(as == "timeline")
+            EventBus.$emit('timeline-opened');
+
         } else {
           EventBus.$emit('show-alert');
         }
