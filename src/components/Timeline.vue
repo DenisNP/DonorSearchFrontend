@@ -90,16 +90,16 @@
             </div>
           </div>
           <!-- Confirm visit -->
-          <div class="balloon" v-show="timeline.confirm_visit.date_from && timeline.confirm_visit.date_to">
+          <div class="balloon" v-show="timeline.confirm && timeline.confirm_visit.date_from && timeline.confirm_visit.date_to">
             <div class="timeline-date">
-              <span style="display:block;">{{ showDate(timeline.confirm_visit.date_from) }}</span> <span class="dash"></span> <span>{{ showDate(timeline.confirm_visit.date_to) }}</span>
+              <span style="display:block;">{{ showDate(timeline.confirm && timeline.confirm_visit.date_from) }}</span> <span class="dash"></span> <span>{{ showDate(timeline.confirm && timeline.confirm_visit.date_to) }}</span>
             </div>
             <vkui-icon name="user_added" class="MyIcon28" :size="24" :style="{color: '#27ae60', 'margin-top': '6px'}"/>
             <div class="balloon-content">
               <Group title="Повторный визит">
                 <Input class="MyInput" type="date" v-model="confirmDate" />
-                <Checkbox v-show="datePassed(timeline.confirm_visit.visit_date)" v-model="withoutDonation">Подтверждение без сдачи</Checkbox>
-                <div style="display:flex;" v-show="datePassed(timeline.confirm_visit.visit_date)" >
+                <Checkbox v-show="datePassed(timeline.confirm && timeline.confirm_visit.visit_date)" v-model="withoutDonation">Подтверждение без сдачи</Checkbox>
+                <div style="display:flex;" v-show="datePassed(timeline.confirm && timeline.confirm_visit.visit_date)" >
                   <Button @click="approved(true)" class="button-margin">
                     Подтвердить
                   </Button>
@@ -214,7 +214,8 @@ export default {
         donationDate: null,
         loader: false,
         confirmDate: null,
-        lastStationId: null
+        lastStationId: null,
+        firstLoaded: false
       }
   },
   computed: {
@@ -259,6 +260,9 @@ export default {
     sheetConfirmClose() {
       this.sheetConfirmOpened = false;
       if(this.confirmDate) {
+        if(!this.timeline.confirm_visit)
+          this.timeline.confirm_visit = {};
+
         this.timeline.confirm_visit.visit_date = this.dateToJson(this.confirmDate);
         this.loader = true;
         this.sendTimeline();
@@ -281,6 +285,9 @@ export default {
       //}
     },
     approved(val) {
+      if(!this.timeline.confirm_visit)
+        this.timeline.confirm_visit = {};
+
       this.timeline.confirm_visit.without_donation = !!this.withoutDonation;
       this.loader = true;
       this.sendTimeline();
@@ -302,9 +309,15 @@ export default {
       DSApi.send('/api/donations', this.timeline, (res) => {
         self.loader = false;
         DSProfile.timeline = Object.assign(self.timeline, res);
+        self.setObjects();
       }, (err) => {
         self.loader = false;
-      });
+      },'POST');
+    },
+    setObjects() {
+      this.withoutDonation = this.timeline.confirm_visit === null ? null : this.timeline.confirm_visit.without_donation;
+      this.donationDate = this.timeline.donation_date;
+      this.confirmDate = this.timeline.confirm_visit === null ? null : this.timeline.confirm_visit.visit_date;
     }
   },
   watch: {
@@ -325,13 +338,17 @@ export default {
     });
 
     EventBus.$on('timeline-opened', () => {
-      self.loader = true;
-      DSApi.send('/api/donations/' + DSProfile.data.vk_id + '?type=timeline', {}, (res) => {
-        self.loader = false;
-        DSProfile.timeline = Object.assign(self.timeline, res);
-      }, (err) => {
-        self.loader = false;
-      });
+      if(!self.firstLoaded) {
+        self.loader = true;
+        self.firstLoaded = true;
+        DSApi.send('donations/' + DSProfile.data.vk_id + '?type=timeline', {}, (res) => {
+          self.loader = false;
+          DSProfile.timeline = Object.assign(self.timeline, res);
+          self.setObjects();
+        }, (err) => {
+          self.loader = false;
+        },'POST');
+      }
     });
   },
   components: {

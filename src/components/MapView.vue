@@ -1,5 +1,6 @@
 <template>
   <VKView activePanel="defMap" v-bind="$attrs">
+    <ScreenSpinner slot="popout" v-if="loader"/>
     <Panel id="defMap" theme="white">
       <PanelHeader id="mapHeader">Станции приёма
         <HeaderButton slot="left" @click="setCenter" v-show="userLocation.lat">
@@ -67,7 +68,7 @@ import { MAPBOX_TOKEN } from '../tokens.js'
 
 import VKC from '../VK/VKC'
 import DSApi from '../DSApi'
-import { VKView, Panel, PanelHeader, HeaderButton, Header, Button, InfoRow, Cell, Div } from '@denull/vkui/src/components'
+import { VKView, Panel, PanelHeader, HeaderButton, Header, Button, InfoRow, Cell, Div, ScreenSpinner } from '@denull/vkui/src/components'
 let MapboxLanguage = require('@mapbox/mapbox-gl-language');
 import Mapbox from 'mapbox-gl-vue'
 import BottomPopup from './BottomPopup'
@@ -89,6 +90,7 @@ export default {
       center: [30.315, 59.939],
       zoom: 12,
       mapHeight: "",
+      loader: false,
       markers: [
 
       ],
@@ -174,7 +176,7 @@ export default {
         let self = this;
         let diff = Date.now() - this.lastStationsGot;
           this.lastStationsGot = Date.now();
-
+          self.loader = true;
           DSApi.send('Stations/' + DSProfile.data.vk_id, {}, (data) => {
             self.markers = [];
 
@@ -201,6 +203,9 @@ export default {
             });
 
             DSProfile.stations = self.markers;
+            self.loader = false;
+          },(err) => {
+            self.loader = false;
           });
         }
       },
@@ -288,7 +293,8 @@ export default {
     Button,
     InfoRow,
     Cell,
-    Div
+    Div,
+    ScreenSpinner
   }
 }
 

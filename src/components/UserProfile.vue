@@ -9,7 +9,7 @@
                 DonorSearch
             </PanelHeader>
 
-            <Group class="DonationsStats">
+            <Group class="DonationsStats" v-if="Donations.length">
                 <List>
                     <Cell>
                         <vkui-icon :size="24" name="like" style="color: red" slot="before" :class="{shown: Donations.length}" />
@@ -465,7 +465,7 @@ export default {
                         self.CitySelection.empty = false;
                         self.CitySelection.ready = false;
 
-                        dsApi.send('Cities/' + e, {}, (data) => {
+                        dsApi.send('Cities/searchByPattern/' + e, {}, (data) => {
                             // Debug.log({['Cities/' + e]: data});
 
                             self.CitySelection.ready = true;
