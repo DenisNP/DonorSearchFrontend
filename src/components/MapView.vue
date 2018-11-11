@@ -24,7 +24,7 @@
         <Header level="2">
             {{ station && station.title }}
         </Header>
-        <Div class="shrinkedDiv" v-show="station && station.requrement_of_user_blood != 0">
+        <Div class="shrinkedDiv Avatar-transparent" v-show="station && station.requrement_of_user_blood != 0">
           <Cell>
             <Avatar :size="28" slot="before" :src="(station && station.requrement_of_user_blood == -2) ? activeIcon : normalIcon" />
             {{ bloodRequirement }}
