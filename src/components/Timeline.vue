@@ -429,7 +429,7 @@ export default {
 }
 
 .timeline-date {
-  margin-left: -80px;
+  margin-left: -85px;
   margin-right: 20px;
   margin-top: 10px;
   color: var(--text_secondary);
