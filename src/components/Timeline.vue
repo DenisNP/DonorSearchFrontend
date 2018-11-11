@@ -122,31 +122,45 @@
                   <vkui-icon :size="24" name="cancel" />
               </HeaderButton>
 
-        Противопоказания
+        Требования
       </PanelHeader>
 
       <Group>
         <List>
-          <Cell description="Никогда!">
+          <Cell description="от 18 лет">
             <vkui-icon :size="24" name="error" slot="before" />
 
-            Не есть!
+            Возраст
           </Cell>
 
-          <Cell description="Вообще!">
+          <Cell description="больше 50 кг">
             <vkui-icon :size="24" name="error" slot="before" />
 
-            И не пить!
+            Вес
           </Cell>
-        </List>
-      </Group>
 
-      <Group>
-        <List>
-          <Cell description="Для количества!">
+          <Cell description="через 1 месяц">
             <vkui-icon :size="24" name="error" slot="before" />
 
-            Ну и не спать!
+            Грипп, ОРВИ
+          </Cell>
+
+          <Cell description="через 6 - 12 месяцев">
+            <vkui-icon :size="24" name="error" slot="before" />
+
+            Контакт с больными
+          </Cell>
+
+          <Cell description="через 1 год">
+            <vkui-icon :size="24" name="error" slot="before" />
+
+            Беременность
+          </Cell>
+
+          <Cell description="через 2 месяца">
+            <vkui-icon :size="24" name="error" slot="before" />
+
+            Аллергия
           </Cell>
         </List>
       </Group>
@@ -165,26 +179,24 @@
 
       <Group>
         <List>
-          <Cell description="Никогда!">
+          <Cell description="Не принимайте лекарства с аспирином и анальгетиками">
             <vkui-icon :size="24" name="error" slot="before" />
-
-            Не есть!
+            72 часа
           </Cell>
 
-          <Cell description="Вообще!">
+          <Cell description="Воздержитесь от употребления алкоголя">
             <vkui-icon :size="24" name="error" slot="before" />
-
-            И не пить!
+            48 часов
           </Cell>
-        </List>
-      </Group>
 
-      <Group>
-        <List>
-          <Cell description="Для количества!">
+          <Cell description="Не употребляйте жирную, острую и копчёную пищу">
             <vkui-icon :size="24" name="error" slot="before" />
+            24 часа
+          </Cell>
 
-            Ну и не спать!
+          <Cell description="Воздержитесь от курения">
+            <vkui-icon :size="24" name="error" slot="before" />
+            1 час
           </Cell>
         </List>
       </Group>
