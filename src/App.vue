@@ -31,6 +31,7 @@ import DSApi from './DSApi'
 import VKC from './VK/VKC'
 import EventBus from './EventBus'
 import { VK_ACCESS_TOKEN } from './tokens.js'
+import Debug from './Debug'
 
 export default {
     name: 'app',
@@ -51,15 +52,6 @@ export default {
       });
     },
     watch: {
-      activeStory(val) {
-        if(val == "map") {
-          //open map
-          if(!this.mapInitialized){
-            this.mapInitialized = true;
-          }
-          EventBus.$emit('map-opened');
-        }
-      },
       '$route' (to, from) {
         Debug.log({router: [from, to]});
       }
@@ -78,6 +70,14 @@ export default {
 
         if(this.globalProfile.city_id) {
           this.activeStory = as;
+
+          if(as == "map") {
+            if(!this.mapInitialized){
+              this.mapInitialized = true;
+            }
+            EventBus.$emit('map-opened');
+          }
+
         } else {
           EventBus.$emit('show-alert');
         }

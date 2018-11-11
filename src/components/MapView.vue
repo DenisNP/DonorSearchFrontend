@@ -112,7 +112,7 @@ export default {
 
     let self = this;
     EventBus.$on('map-opened', function() {
-
+      self.loadStations();
     });
   },
   methods: {
@@ -167,9 +167,9 @@ export default {
     loadStations(force) {
       if(force || this.lastStationsGot > 0) {
         let self = this;
-        let diff = Date.now - this.lastStationsGot;
+        let diff = Date.now() - this.lastStationsGot;
         if(diff > 3600000 || force && DSProfile.data.vk_is) {
-          this.lastStationsGot = Date.now;
+          this.lastStationsGot = Date.now();
 
           DSApi.send('Stations/' + DSProfile.data.vk_id, {}, (data) => {
             self.markers = [];
@@ -241,8 +241,8 @@ export default {
       let dFrom = new Date(this.timeline.appointment_date_from);
       let dTo = new Date(this.timeline.appointment_date_to);
       let dn = Date.now();
-      let diff = dFrom - now;
-      return dTo >= now && diff <= 3600000*24*7;
+      let diff = dFrom - dn;
+      return dTo >= dn && diff <= 3600000*24*7;
     }
   },
   watch: {
@@ -262,7 +262,7 @@ export default {
           self.userLocation.lng = geo.long;
 
           self.center = [geo.long, geo.lat];
-          self.loadStations(true);
+          self.loadStations();
         });
       }
     },

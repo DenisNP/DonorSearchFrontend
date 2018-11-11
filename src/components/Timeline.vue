@@ -1,5 +1,15 @@
 <template>
   <VKView :activePanel="activePanel" v-bind="$attrs">
+      <ActionSheet v-if="sheetOpened" slot="popout"
+        :onClose="sheetClose"
+        text="Запись на сдачу"
+      >
+        <ActionSheetItem @click="sheetClose">Сохранить дату</ActionSheetItem>
+        <ActionSheetItem @click="cancelDate" theme="destructive">Отмена</ActionSheetItem>
+      </ActionSheet>
+
+      <ScreenSpinner slot="popout" v-if="loader"/>
+
     <Panel id="defTimeline">
       <PanelHeader>Мои события</PanelHeader>
       <div class="timeline">
@@ -8,12 +18,12 @@
           <!-- First subscribtion -->
           <div class="balloon" v-show="timeline.appointment_date_from && timeline.appointment_date_to">
             <div class="timeline-date">
-              <span>{{ showDate(timeline.appointment_date_from) }}</span><span>{{ showDate(timeline.appointment_date_to) }}</span>
+              <span style="display: block;">{{ showDate(timeline.appointment_date_from) }}</span> <span class="dash"></span> <span>{{ showDate(timeline.appointment_date_to) }}</span>
             </div>
             <vkui-icon name="recent_outline" :size="28" :style="{color: '#27ae60', 'margin-top': '6px'}"/>
             <div class="balloon-content">
               <Group title="Запись на сдачу крови">
-                <Input class="MyInput" type="date" />
+                <Input class="MyInput" type="date" v-model="donationDate" />
                 <CellButton>Противопоказания</CellButton>
               </Group>
             </div>
@@ -51,111 +61,125 @@
                   </InfoRow>
                 </Div>
 
-                <Button v-show="datePassed(timeline.donation_date)">
-                  <span slot="before">
-                    <vkui-icon name="camera" :size="24"/>
-                  </span>
-                  Добавить донацию
-                </Button>
-                <input
+                <div style="display:flex;" v-show="datePassed(timeline.donation_date)" >
+                  <Button type="file" accept="image/*" capture="camera">
+                    <span slot="before">
+                      <vkui-icon name="camera" :size="24"/>
+                    </span>
+                  </Button>
+                  <Button level="secondary">
+                    Отменить
+                  </Button>
+                </div>
               <!-- </Group> -->
             </div>
           </div>
           <!-- Confirm visit -->
           <div class="balloon" v-show="timeline.confirm_visit.date_from && timeline.confirm_visit.date_to">
             <div class="timeline-date">
-              <span>{{ showDate(timeline.confirm_visit.date_from) }}</span><span>{{ showDate(timeline.confirm_visit.date_to) }}</span>
+              <span style="display:block;">{{ showDate(timeline.confirm_visit.date_from) }}</span> <span class="dash"></span> <span>{{ showDate(timeline.confirm_visit.date_to) }}</span>
             </div>
             <vkui-icon name="user_add" :size="28" :style="{color: '#27ae60', 'margin-top': '6px'}"/>
             <div class="balloon-content">
-
+              <Group title="Повторный визит">
+                <Input class="MyInput" type="date" />
+                <Checkbox v-model="withoutDonation">Подтверждение без сдачи</Checkbox>
+                <div style="display:flex;" v-show="datePassed(timeline.confirm_visit.visit_date)" >
+                  <Button type="file" accept="image/*" capture="camera">
+                    Подтвердить
+                  </Button>
+                  <Button level="secondary">
+                    Отменить
+                  </Button>
+                </div>
+              </Group>
             </div>
           </div>
         </div>
       </div>
     </Panel>
     <Panel id="warnings">
-  		<PanelHeader>
-  			<HeaderButton slot="left" @click="activePanel = 'defTimeline'">
+      <PanelHeader>
+        <HeaderButton slot="left" @click="activePanel = 'defTimeline'">
                   <!-- <template v-if="osname === 'IOS'">
                       Отмена
                   </template> -->
                   <vkui-icon :size="24" name="cancel" />
               </HeaderButton>
 
-  			Противопоказания
-  		</PanelHeader>
+        Противопоказания
+      </PanelHeader>
 
-  		<Group>
-  			<List>
-  				<Cell description="Никогда!">
-  					<vkui-icon :size="24" name="error" slot="before" />
+      <Group>
+        <List>
+          <Cell description="Никогда!">
+            <vkui-icon :size="24" name="error" slot="before" />
 
-  					Не есть!
-  				</Cell>
+            Не есть!
+          </Cell>
 
-  				<Cell description="Вообще!">
-  					<vkui-icon :size="24" name="error" slot="before" />
+          <Cell description="Вообще!">
+            <vkui-icon :size="24" name="error" slot="before" />
 
-  					И не пить!
-  				</Cell>
-  			</List>
-  		</Group>
+            И не пить!
+          </Cell>
+        </List>
+      </Group>
 
-  		<Group>
-  			<List>
-  				<Cell description="Для количества!">
-  					<vkui-icon :size="24" name="error" slot="before" />
+      <Group>
+        <List>
+          <Cell description="Для количества!">
+            <vkui-icon :size="24" name="error" slot="before" />
 
-  					Ну и не спать!
-  				</Cell>
-  			</List>
-  		</Group>
-  	</Panel>
+            Ну и не спать!
+          </Cell>
+        </List>
+      </Group>
+    </Panel>
     <Panel id="recommendations">
-  		<PanelHeader>
-  			<HeaderButton slot="left" @click="activePanel = 'defTimeline'">
+      <PanelHeader>
+        <HeaderButton slot="left" @click="activePanel = 'defTimeline'">
                   <!-- <template v-if="osname === 'IOS'">
                       Отмена
                   </template> -->
                   <vkui-icon :size="24" name="cancel" />
               </HeaderButton>
 
-  			Памятка к сдаче
-  		</PanelHeader>
+        Памятка к сдаче
+      </PanelHeader>
 
-  		<Group>
-  			<List>
-  				<Cell description="Никогда!">
-  					<vkui-icon :size="24" name="error" slot="before" />
+      <Group>
+        <List>
+          <Cell description="Никогда!">
+            <vkui-icon :size="24" name="error" slot="before" />
 
-  					Не есть!
-  				</Cell>
+            Не есть!
+          </Cell>
 
-  				<Cell description="Вообще!">
-  					<vkui-icon :size="24" name="error" slot="before" />
+          <Cell description="Вообще!">
+            <vkui-icon :size="24" name="error" slot="before" />
 
-  					И не пить!
-  				</Cell>
-  			</List>
-  		</Group>
+            И не пить!
+          </Cell>
+        </List>
+      </Group>
 
-  		<Group>
-  			<List>
-  				<Cell description="Для количества!">
-  					<vkui-icon :size="24" name="error" slot="before" />
+      <Group>
+        <List>
+          <Cell description="Для количества!">
+            <vkui-icon :size="24" name="error" slot="before" />
 
-  					Ну и не спать!
-  				</Cell>
-  			</List>
-  		</Group>
-  	</Panel>
+            Ну и не спать!
+          </Cell>
+        </List>
+      </Group>
+    </Panel>
   </VKView>
 </template>
 
 <script>
 
-import { VKView, Panel, PanelHeader, Cell, Avatar, Button, CellButton, Group, Input, Div } from '@denull/vkui/src/components'
+import { VKView, Panel, PanelHeader, Cell, Avatar, Button, CellButton, Group, Input, Div, Checkbox, ScreenSpinner } from '@denull/vkui/src/components'
 import DSProfile from '../DSProfile'
 
 export default {
@@ -166,7 +190,11 @@ export default {
   data() {
       return {
         timeline: DSProfile.timeline,
-        activePanel: "defTimeline"
+        activePanel: "defTimeline",
+        withoutDonation: false,
+        sheetOpened: false,
+        donationDate: null,
+        loader: false
       }
   },
   computed: {
@@ -175,13 +203,28 @@ export default {
   methods: {
     showDate(d) {
       if(!d) return "";
-      let _d = new Date(d);
-      return ("0"+_d.getDate()).substr(-2) + "." + ("0"+_d.getMonth()-(-1)).substr(-2) + "." + ("0"+_d.getFullYear()).substr(-2);
+      let date = new Date(d);
+      return date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
     },
     datePassed(d) {
       if(!d) return false;
       let _d = new Date(d);
       return _d.getTime() <= Date.now();
+    },
+    sheetClose() {
+      this.sheetOpened = false;
+    },
+    cancelDate() {
+      this.donationDate = null;
+      let self = this;
+      this.$nextTick(() => {
+        self.sheetOpened = false;
+      });
+    }
+  },
+  watch: {
+    donationDate() {
+      this.sheetOpened = true;
     }
   },
   components: {
@@ -194,7 +237,9 @@ export default {
     CellButton,
     Group,
     Input,
-    Div
+    Div,
+    Checkbox,
+    ScreenSpinner
   }
 }
 
@@ -263,6 +308,16 @@ export default {
   padding: 0!important;
   background: transparent;
   border: 0;
+}
+
+.dash {
+  display: block;
+  height: 40px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  /* margin-right: 20px; */
+  width: calc(100% - 7px);
+  border-right: 2px dotted var(--text_secondary);
 }
 
 </style>

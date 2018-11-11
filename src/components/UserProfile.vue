@@ -3,7 +3,7 @@
         <Alert :actions="alertActions" slot="popout" v-if="alertShown" :onClose="closeAlert">
             Необходимо авторизоваться!
         </Alert>
-        
+
         <Panel id="Profile">
             <PanelHeader>
                 DonorSearch
@@ -86,11 +86,11 @@
 
                     <Checkbox v-model="DSProfileNotFirst">Я уже сдавал кровь</Checkbox>
 
-                    
+
 
                     <div class="saveBtnContainer">
                         <Button @click="DSProfileSave">Сохранить</Button>
-                        
+
                         <span class="savedNotification"
                             :class="{
                                 shown: DSProfile._saved !== false,
@@ -325,8 +325,9 @@ export default {
         }
     },
     mounted() {
+
+        let self = this;
         EventBus.$on('VKCInit', () => {
-            let self = this;
 
             VKC.auth(Number(VK_APP_ID), 'email,friends', (data) => {
                 Debug.log({'response': data})
@@ -347,6 +348,10 @@ export default {
             }, (error) => {
                 Debug.log({'error': error})
             })
+        });
+
+        EventBus.$on('show-alert', () => {
+          self.alertShown = true;
         });
     },
     methods: {
@@ -466,6 +471,10 @@ export default {
                         self.CitySelection._saved = false;
                     }, 1000);
                 }, () => {}, 'POST');
+            },
+
+            closeAlert() {
+              this.alertShown = false;
             }
     },
     components: {
