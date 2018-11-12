@@ -2,7 +2,7 @@
   <div id="app" :class="clientType">
     <Epic :activeStory="activeStory">
       <Tabbar slot="tabbar">
-        <TabbarItem :selected='activeStory == "profile"' @click='setActiveStory("profile")'>
+        <TabbarItem :selected='activeStory == "user"' @click='setActiveStory("user")'>
           <vkui-icon name="user" size="28" />
         </TabbarItem>
         <TabbarItem :selected='activeStory == "map"' @click='setActiveStory("map")'>
@@ -12,7 +12,7 @@
           <vkui-icon name="recent_outline" size="28" />
         </TabbarItem>
       </Tabbar>
-      <UserProfile id="profile" key="profile" v-show="activeStory == 'profile'"/>
+      <UserProfile id="user" key="user" v-show="activeStory == 'user'"/>
       <MapView id="map" key="map" v-show="activeStory == 'map'" :mapInitialized="mapInitialized"/>
       <Timeline id="timeline" key="timeline" v-show="activeStory == 'timeline'"/>
     </Epic>
@@ -67,7 +67,7 @@ export default {
     },
     data() {
         return {
-            activeStory: 'profile',
+            activeStory: 'user',
             mapInitialized: false,
             clientType: "client--not-initialized",
             globalProfile: DSProfile.data

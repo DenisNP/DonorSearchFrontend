@@ -1,7 +1,7 @@
 <template>
     <VKView v-bind="$attrs" :activePanel="activePanel" class="UserProfile">
         <Alert :actions="alertActions" slot="popout" v-if="alertShown" :onClose="closeAlert">
-            Необходимо авторизоваться!
+            Необходимо указать и сохранить свой город!
         </Alert>
 
         <Panel id="Profile">
@@ -480,7 +480,7 @@ export default {
                 }, 300
             ),
             CitySelectionChoose(city) {
-                self = this;
+                let self = this;
 
                 self.CitySelection.search = '';
                 self.CitySelection.list = [];

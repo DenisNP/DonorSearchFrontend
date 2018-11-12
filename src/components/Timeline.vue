@@ -1,20 +1,13 @@
 <template>
   <VKView :activePanel="activePanel" v-bind="$attrs">
-      <ActionSheet v-if="sheetOpened" slot="popout"
-        :onClose="cancelDate"
-        text="Запись на сдачу"
-      >
-        <ActionSheetItem @click="sheetClose">{{ lastStationId ? 'Сохранить дату' : 'Выбрать станцию' }}</ActionSheetItem>
-        <ActionSheetItem @click="cancelDate" theme="destructive">Отмена</ActionSheetItem>
-      </ActionSheet>
 
-      <ActionSheet v-if="sheetConfirmOpened" slot="popout"
-        :onClose="cancelConfirmDate"
-        text="Запись на подтверждение"
-      >
-        <ActionSheetItem @click="sheetConfirmClose">Сохранить дату</ActionSheetItem>
-        <ActionSheetItem @click="cancelConfirmDate" theme="destructive">Отмена</ActionSheetItem>
-      </ActionSheet>
+      <Alert :actions="alertDonationActions" slot="popout" v-if="sheetOpened" :onClose="cancelDate">
+          {{ lastStationId ? 'Сохранить дату' : 'Выбрать станцию' }}
+      </Alert>
+
+      <Alert :actions="alertConfirmActions" slot="popout" v-if="sheetConfirmOpened" :onClose="cancelConfirmDate">
+          Назначить дату?
+      </Alert>
 
       <ScreenSpinner slot="popout" v-if="loader"/>
 
@@ -23,6 +16,16 @@
       <div class="timeline">
         <div class="left-column"></div>
         <div class="right-column Avatar-transparent">
+          <!-- Prev Donation -->
+          <div class="balloon" v-show="timeline.previous_donation_date">
+            <div class="timeline-date">
+              {{ showDate(timeline.previous_donation_date) }}
+            </div>
+            <vkui-icon name="reply" class="MyIcon28" :size="24" :style="{color: '#bbbbbb', 'margin-top': '6px'}"/>
+            <div class="balloon-content">
+              <Cell description="+3 спасённых жизни">Прошлая донация</Cell>
+            </div>
+          </div>
           <!-- First subscribtion -->
           <div class="balloon" v-show="timeline.appointment_date_from && timeline.appointment_date_to && !timeline.donation_date">
             <div class="timeline-date">
@@ -34,7 +37,7 @@
                 <Input v-show="userCanStartTimeline" class="MyInput" type="date" v-model="donationDate" />
                 <CellButton v-show="userCanStartTimeline" @click="activePanel = 'warnings'">Противопоказания</CellButton>
                 <Div v-show="!userCanStartTimeline">
-                  Ближайшая возможная дата записи для вас ещё не скоро, мы уведовим вас при её приближении
+                  Ближайшая возможная дата записи для вас ещё не скоро, мы уведомим вас при её приближении
                 </Div>
               </Group>
             </div>
@@ -224,7 +227,29 @@ export default {
         lastStationId: null,
         lastStationAddress: "",
         lastStationTitle: "",
-        firstLoaded: false
+        firstLoaded: false,
+        alertDonationActions: [
+          {
+            'title': 'Да',
+            'action': this.sheetClose,
+            style: 'destructive'
+          },
+          {
+            'title': 'Отмена',
+            'action': this.cancelDate
+          }
+        ],
+        alertConfirmActions: [
+          {
+            'title': 'Да',
+            'action': this.sheetConfirmClose,
+            style: 'destructive'
+          },
+          {
+            'title': 'Отмена',
+            'action': this.cancelConfirmDate
+          }
+        ]
       }
   },
   computed: {
@@ -289,7 +314,7 @@ export default {
       self.loader = true;
 
       if(val) {
-        self.timeline.success = !!val;
+        self.timeline.donation_success = !!val;
         this.sendTimeline();
       } else {
         DSApi.send('donations/delete/' + DSProfile.data.vk_id + '/' + self.timeline.id, {}, (res) => {

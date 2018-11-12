@@ -1,25 +1,23 @@
 <template>
-  <VKView activePanel="defMap" v-bind="$attrs">
+  <VKView activePanel="defMap" v-bind="$attrs" key="mapController">
     <ScreenSpinner slot="popout" v-if="loader"/>
-    <Panel id="defMap" theme="white">
+    <Panel id="defMap" theme="white" key="mapPanel">
       <PanelHeader id="mapHeader">Станции приёма
         <HeaderButton slot="left" @click="setCenter" v-show="userLocation.lat">
           <vkui-icon name="place" size="28" />
         </HeaderButton>
       </PanelHeader>
-      <Mapbox v-if="mapInitialized"
+      <!-- <Mapbox v-if="mapInitialized"
         :style="mapHeight"
         :access-token=token
-        :map-options="{
-        style: 'mapbox://styles/mapbox/light-v9',
-          center,
-          zoom,
-          container: 'map-container'
-        }"
+        :map-options="mapOptions"
 
         @map-init="init"
         @map-load="loaded"
-      ></Mapbox>
+      ></Mapbox> -->
+      <div id="mapContainer" ref="mapCont" :style="mapHeight" v-show="true" key="mapDiv">
+
+      </div>
       <BottomPopup :opened="station != null" @close="station = null" :openedHeight="assumeHeight">
         <Header level="2">
             {{ station && station.title }}
@@ -64,7 +62,7 @@
 
 <script>
 
-import { MAPBOX_TOKEN } from '../tokens.js'
+import { MAPBOX_TOKEN } from '../tokens'
 
 import VKC from '../VK/VKC'
 import DSApi from '../DSApi'
@@ -86,7 +84,6 @@ export default {
   data() {
     return {
       map: null,
-      token: MAPBOX_TOKEN,
       center: [30.315, 59.939],
       zoom: 12,
       mapHeight: "",
@@ -94,7 +91,16 @@ export default {
       markers: [
 
       ],
+      mapLoaded: false,
+      accessToken: MAPBOX_TOKEN,
       mapMarkers: [],
+      mapOptions: {
+        style: 'mapbox://styles/mapbox/light-v9',
+        center: [30.315, 59.939],
+        zoom: 12,
+        container: 'mapContainer'
+      },
+      mapVisible: false,
       userLocation: {
         lng: "",
         lat: ""
@@ -110,34 +116,52 @@ export default {
     let vue_header = document.getElementsByClassName('View__header')[0].offsetHeight;
     let tabbar = document.getElementsByClassName('Tabbar')[0].offsetHeight;
     let height = vue_header - (-tabbar);
-    this.mapHeight = 'height: calc(100vh - ' + height + 'px);';
+    this.mapHeight = 'height: ' + (screen.height - height) + 'px; width: ' + screen.width + 'px;';
 
     let self = this;
     EventBus.$on('map-opened', function() {
-      self.loadStations();
+      if(!self.mapMarkers || !self.mapMarkers.length)
+        self.loadStations(true);
+
+      self.$nextTick(() => {
+        var mapCanvas = document.getElementsByClassName('mapboxgl-canvas')[0];
+        mapCanvas.style.width = '100%';
+        mapCanvas.style.height = '800px';
+        self.map.resize();
+      });
+
+      self.updateMarkers(self.markers);
     });
+
+    console && console.log('MAP LOADING', this.mapOptions, this.mapHeight);
+    window.mapboxgl.accessToken = this.accessToken;
+    this.map = new window.mapboxgl.Map(this.mapOptions);
+    this.map.addControl(new MapboxLanguage({
+      defaultLanguage: 'ru'
+    }));
+
+    this.map.on('load',() => {
+
+      self.mapVisible = true;
+
+      self.$nextTick(() => {
+        var mapCanvas = document.getElementsByClassName('mapboxgl-canvas')[0];
+        mapCanvas.style.width = '100%';
+        mapCanvas.style.height = '800px';
+        self.map.resize();
+        self.mapLoaded = true;
+
+        self.updateMarkers(self.markers);
+      });
+    });
+
+
+    //this.mapHeight = 'height: calc(100vh - ' + height + 'px); width: 100vw;';
   },
   methods: {
-    init(map) {
-      this.map = map;
-      map.addControl(new MapboxLanguage({
-        defaultLanguage: 'ru'
-      }));
-
-      let self = this;
-      DSProfile.onLoaded(() => {
-        self.loadStations(true);
-      });
-    },
-
-    loaded(map) {
-      this.map = map;
-      this.updateMarkers(this.markers);
-    },
-
     updateMarkers(_markers) {
       let self = this;
-
+      if(!this.map || !this.mapLoaded) return;
       this.mapMarkers.forEach((mm) => {
           mm && mm.remove && mm.remove();
       });
@@ -156,7 +180,7 @@ export default {
 
         let m = new window.mapboxgl.Marker(el)
           .setLngLat(mData.coordinates)
-          .addTo(this.map);
+          .addTo(self.map);
 
         this.mapMarkers.push(m);
       }
@@ -175,42 +199,44 @@ export default {
       if((force || this.lastStationsGot > 0) && DSProfile.data.vk_id) {
         let self = this;
         let diff = Date.now() - this.lastStationsGot;
+
           this.lastStationsGot = Date.now();
           self.loader = true;
           DSApi.send('Stations/' + DSProfile.data.vk_id, {}, (data) => {
             self.markers = [];
 
-            data.forEach((s) => {
-              let sData = {
-                coordinates: [s.lng, s.lat],
-                classes: [
-                  "marker",
-                  s.requrement_of_user_blood == -2
-                  ? 'station-active'
-                  : (s.requrement_of_user_blood == -1
-                    ? 'station-normal'
-                    : 'station-disabled')
-                  ],
-                title: s.title || s.address,
-                address: s.address || '',
-                id: s.id,
-                without_registration: s.without_registration,
-                accept_first_timers: s.accept_first_timers,
-                phones: s.phones || '',
-                requrement_of_user_blood: s.requrement_of_user_blood
-              };
+            if(!data.error) {
+              data.forEach((s) => {
+                let sData = {
+                  coordinates: [s.lng, s.lat],
+                  classes: [
+                    "marker",
+                    s.requrement_of_user_blood == -2
+                    ? 'station-active'
+                    : (s.requrement_of_user_blood == -1
+                      ? 'station-normal'
+                      : 'station-disabled')
+                    ],
+                  title: s.title || s.address,
+                  address: s.address || '',
+                  id: s.id,
+                  without_registration: s.without_registration,
+                  accept_first_timers: s.accept_first_timers,
+                  phones: s.phones || '',
+                  requrement_of_user_blood: s.requrement_of_user_blood
+                };
 
-              self.markers.push(sData);
-            });
+                self.markers.push(sData);
+              });
 
-            DSProfile.stations = self.markers;
-            self.loader = false;
+              self.loader = false;
+              self.updateMarkers(self.markers);
+            }
           },(err) => {
             self.loader = false;
           });
         }
       },
-
       sendSubscribe() {
         EventBus.$emit('subscribe-station', this.station);
       }
@@ -259,12 +285,12 @@ export default {
     }
   },
   watch: {
-    markers: {
-      handler(val) {
-        this.updateMarkers(val);
-      },
-      deep: true
-    },
+    // markers: {
+    //   handler(val) {
+    //     this.updateMarkers(val);
+    //   },
+    //   deep: true
+    // },
     mapInitialized(val) {
       if(val) {
         let self = this;
@@ -275,12 +301,13 @@ export default {
           self.userLocation.lng = geo.long;
 
           self.center = [geo.long, geo.lat];
-          self.loadStations();
+          self.loadStations(true);
         });
       }
     },
     center(val) {
-      this.map.flyTo({center: val});
+      if(this.map)
+        this.map.flyTo({center: val});
     }
   },
   components: {
@@ -354,6 +381,10 @@ export default {
   padding-top: 0!important;
   padding-bottom: 0!important;
   margin-top: -3px!important;
+}
+
+#mapCointainer {
+	text-align: center;
 }
 
 </style>
