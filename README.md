@@ -1,6 +1,7 @@
 # VK Donors
 
 DonorSearch.org web app demo for VKHackathon 2018.
+
 Backend repository is: https://github.com/wooferclaw/DonorSearch-BackEnd
 
 ## Project setup
