@@ -25,7 +25,7 @@
         <Div class="shrinkedDiv Avatar-transparent" v-show="station && station.requrement_of_user_blood != 0">
           <Cell>
             <Avatar :size="28" slot="before" :src="(station && station.requrement_of_user_blood == -2) ? activeIcon : normalIcon" />
-            {{ bloodRequirement }}
+            {{ bloodRequirement() }}
             <Button slot="asideContent" level="primary" v-show="userCanStartTimeline" @click="sendSubscribe">Записаться</Button>
           </Cell>
         </Div>
@@ -239,6 +239,16 @@ export default {
       },
       sendSubscribe() {
         EventBus.$emit('subscribe-station', this.station);
+      },
+
+      bloodRequirement() {
+        if(!this.station || this.station.requrement_of_user_blood == 0) return "";
+        let bType = DSProfile.data.blood_type || "";
+        if(bType) {
+          return this.station.requrement_of_user_blood == -2 ? "Дефицит " + bType : "Потребность в " + bType;
+        } else {
+          return this.station.requrement_of_user_blood == -2 ? "Дефицит" : "Есть потребность";
+        }
       }
   },
   computed: {
@@ -259,16 +269,6 @@ export default {
         tHeight -= -50;
 
       return tHeight - (-50);
-    },
-
-    bloodRequirement() {
-      if(!this.station || this.station.requrement_of_user_blood == 0) return "";
-      let bType = DSProfile.data.blood_type || "";
-      if(bType) {
-        return this.station.requrement_of_user_blood == -2 ? "Дефицит " + bType : "Потребность в " + bType;
-      } else {
-        return this.station.requrement_of_user_blood == -2 ? "Дефицит" : "Есть потребность";
-      }
     },
 
     userCanStartTimeline() {

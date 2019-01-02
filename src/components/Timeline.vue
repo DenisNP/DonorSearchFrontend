@@ -34,7 +34,7 @@
             <vkui-icon name="recent_outline" :size="28" :style="{color: '#ffc000', 'margin-top': '6px'}"/>
             <div class="balloon-content">
               <Group title="Запись на сдачу крови">
-                <Input v-show="userCanStartTimeline" class="MyInput" type="date" v-model="donationDate" />
+                <Input v-show="userCanStartTimeline" class="MyInput" type="date" v-model="donationDate" :min="showDate(timeline.appointment_date_from)" :max="showDate(timeline.appointment_date_to)" />
                 <CellButton v-show="userCanStartTimeline" @click="activePanel = 'warnings'">Противопоказания</CellButton>
                 <Div v-show="!userCanStartTimeline">
                   Ближайшая возможная дата записи для вас ещё не скоро, мы уведомим вас при её приближении
@@ -75,8 +75,8 @@
                   </InfoRow>
                 </Div>
 
-                <div style="display:flex; " v-show="datePassed(timeline.donation_date)" >
-                  <Button size="l" component="label" class="my-button-margin">
+                <div style="display:flex; ">
+                  <Button size="l" component="label" class="my-button-margin" v-show="datePassed(timeline.donation_date)" >
                     <input class="File__input" type="file" @change="photoSelected(true)"/>
                     <vkui-icon name="camera" :size="24"></vkui-icon>
                   </Button>
@@ -95,7 +95,7 @@
             <vkui-icon name="user_added" class="MyIcon28" :size="24" :style="{color: '#27ae60', 'margin-top': '6px'}"/>
             <div class="balloon-content">
               <Group title="Повторный визит">
-                <Input class="MyInput" type="date" v-model="confirmDate" />
+                <Input class="MyInput" type="date" v-model="confirmDate" :min="showDate(timeline.confirm_visit.date_from)" :max="showDate(timeline.confirm_visit.date_to)" />
                 <Checkbox v-show="datePassed(timeline.confirm_visit && timeline.confirm_visit.visit_date)" v-model="withoutDonation">Подтверждение без сдачи</Checkbox>
                 <div style="display:flex;" v-show="datePassed(timeline.confirm_visit && timeline.confirm_visit.visit_date)" >
                   <Button @click="approved(true)" class="my-button-margin">

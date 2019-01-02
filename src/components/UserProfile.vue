@@ -358,7 +358,10 @@ export default {
                 self.VKProfileGet(() => {
                     self.getDonations(self.VKProfile.id);
 
-                    DSProfile.load(self.VKProfile.id, (data) => {
+                    DSProfile.load({
+                      vk_id: self.VKProfile.id,
+                      city_title: self.VKProfile.city && self.VKProfile.city.title
+                    }, (data) => {
                         data = DSProfile.setVK(self.VKProfile)
 
                         Debug.log({'users/get/success': data});
@@ -395,7 +398,7 @@ export default {
         // Профиль VKontakte
             VKProfileGet(callback = () => {}) {
                 VKC.quickApi('users.get', {
-                    fields: 'sex,bdate,photo_100,city,country'
+                    fields: 'sex, bdate, photo_100, city, country'
                 }, (data) => {
                     Debug.log({'users.get': data})
 

@@ -62,7 +62,7 @@ export default {
 
 	_LoadedQueue: [],
 	onLoaded(callback = () => {}) {
-		if (!this._loaded) _LoadedQueue.push(callback);
+		if (!this._loaded) this._LoadedQueue.push(callback);
 		else if (typeof callback == 'function') callback();
 	},
 
@@ -72,8 +72,10 @@ export default {
 		},
 
 	// Load data from DB
-		load(vk_id = '', onSuccess = () => {}, onError = () => {}) {
+		load(vk_data, onSuccess = () => {}, onError = () => {}) {
 			let DSProfile = this;
+			let vk_id = vk_data.vk_id;
+			let city_title = vk_data.city_title;
 
 			if (!vk_id && !DSProfile._has_vk()) {
 				console && console.warn('Users are unavailable without VK_id');
@@ -84,7 +86,10 @@ export default {
 				DSProfile.set({vk_id});
 			}
 
-			DSApi.send('users/' + vk_id, {}, (data) => {
+			DSApi.send('users?type=init', {
+				vk_id: vk_id,
+				city_title: city_title
+			}, (data) => {
 				DSProfile._loaded = true;
 
 				for(let k in this._LoadedQueue) {
@@ -94,7 +99,7 @@ export default {
 				}
 
 				onSuccess(DSProfile.set(data));
-			}, onError);
+			}, onError, 'POST');
 		},
 
 	// Get stored data
